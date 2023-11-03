@@ -5,11 +5,10 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-public class Hardware extends ConditionClass{
-    final public ElapsedTime timePassed = new ElapsedTime();
+public class Hardware {
     final private double TICKS_PER_MOTOR_REV = ((((1+((double)46/17))) * (1+((double)46/11))) * 28);
-    final private double DRIVE_GEAR_REDUCTION = 1.0 ;
-    final private double WHEEL_DIAMETER_INCHES = 4.0 ;
+    final private double DRIVE_GEAR_REDUCTION = 1.0;
+    final private double WHEEL_DIAMETER_INCHES = 3.78;
     final private double TICKS_PER_INCH = (TICKS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION)/ (WHEEL_DIAMETER_INCHES * 3.1415);
     final private double DRIVE_SPEED = 0.6;
 //    final private double TURN_SPEED = 0.5;
@@ -175,6 +174,13 @@ public class Hardware extends ConditionClass{
         frontLeft.setPower(0);
         backLeft.setPower(0);
         frontRight.setPower(0);
+        backRight.setPower(0);
+    }
+
+    public void setMotorsToZero(){
+        frontLeft.setPower(0);
+        frontRight.setPower(0);
+        backLeft.setPower(0);
         backRight.setPower(0);
     }
     private boolean isNotAtTargetPosition(){
