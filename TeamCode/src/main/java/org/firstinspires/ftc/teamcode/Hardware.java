@@ -16,6 +16,7 @@ public class Hardware {
     public DcMotor frontRight = null;
     public DcMotor backLeft = null;
     public DcMotor backRight = null;
+    public DcMotor axleMotor = null;
     private final OpMode opMode;
     public Hardware(OpMode opMode1){
         opMode = opMode1;
@@ -54,6 +55,15 @@ public class Hardware {
             opMode.telemetry.addData("BackLeftMotor: ", "Initialized.");
         } catch (Exception e) {
             opMode.telemetry.addData("BackLeftMotor: ", "Error");
+        } finally {
+            opMode.telemetry.update();
+        }
+        try {
+            axleMotor = hardwareMap.dcMotor.get("axleMotor");
+            axleMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            opMode.telemetry.addData("axleMotor: ", "Success");
+        } catch(Exception e) {
+            opMode.telemetry.addData("axleMotor: ", "Error");
         } finally {
             opMode.telemetry.update();
         }
