@@ -16,8 +16,9 @@ public class Hardware {
     public DcMotor frontRight = null;
     public DcMotor backLeft = null;
     public DcMotor backRight = null;
-    public DcMotor axleMotor = null;
+    public Claw claw = new Claw();
     private final OpMode opMode;
+
     public Hardware(OpMode opMode1){
         opMode = opMode1;
     }
@@ -31,6 +32,7 @@ public class Hardware {
         } finally{
             opMode.telemetry.update();
         }
+
         try {
             frontRight = hardwareMap.dcMotor.get("frontRightMotor");
             frontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -40,6 +42,7 @@ public class Hardware {
         } finally{
             opMode.telemetry.update();
         }
+
         try {
             backRight = hardwareMap.dcMotor.get("backRightMotor");
             backRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -49,6 +52,7 @@ public class Hardware {
         } finally {
             opMode.telemetry.update();
         }
+
         try {
             backLeft = hardwareMap.dcMotor.get("backLeftMotor");
             backLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -58,20 +62,11 @@ public class Hardware {
         } finally {
             opMode.telemetry.update();
         }
-        try {
-            axleMotor = hardwareMap.dcMotor.get("axleMotor");
-            axleMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            opMode.telemetry.addData("axleMotor: ", "Success");
-        } catch(Exception e) {
-            opMode.telemetry.addData("axleMotor: ", "Error");
-        } finally {
-            opMode.telemetry.update();
-        }
+
+        claw.init(hardwareMap);
+
         // Have to test this when the drive train is created
-        frontLeft.setPower(0);
-        frontRight.setPower(0);
-        backLeft.setPower(0);
-        backRight.setPower(0);
+        setMotorsToZero();
 
         frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -112,10 +107,7 @@ public class Hardware {
             opMode.telemetry.update();
         }
 
-        frontLeft.setPower(0);
-        frontRight.setPower(0);
-        backLeft.setPower(0);
-        backRight.setPower(0);
+        setMotorsToZero();
 
         opMode.telemetry.addData("Linear Drive complete.", "");
         opMode.telemetry.update();
@@ -136,10 +128,7 @@ public class Hardware {
         backRight.setPower(backRightPower);
         while(isNotAtTargetPosition());
 
-        frontLeft.setPower(0);
-        frontRight.setPower(0);
-        backLeft.setPower(0);
-        backRight.setPower(0);
+        setMotorsToZero();
 
         opMode.telemetry.addData("Linear Drive complete.", "");
         opMode.telemetry.update();
@@ -158,33 +147,28 @@ public class Hardware {
 
         while (isNotAtTargetPosition());
 
-        frontLeft.setPower(0);
-        frontRight.setPower(0);
-        backLeft.setPower(0);
-        backRight.setPower(0);
+        setMotorsToZero();
     }
 
     //positive power -> turn right, negative power -> turn left
     public void turn(double distance, double power){
-        if(power > 0){
-            frontLeft.setPower(power);
-            backLeft.setPower(power);
-            frontLeft.setTargetPosition((int) (distance * TICKS_PER_INCH));
-            backLeft.setTargetPosition((int) (distance * TICKS_PER_INCH));
-        } else {
-            frontRight.setPower(power);
-            backRight.setPower(power);
-            frontRight.setTargetPosition((int) (distance * TICKS_PER_INCH));
-            backRight.setTargetPosition((int) (distance * TICKS_PER_INCH));
-        }
+        int targetPosition = (int) (distance * TICKS_PER_INCH);
+
+        frontLeft.setTargetPosition(targetPosition);
+        frontRight.setTargetPosition(-targetPosition);
+        backLeft.setTargetPosition(targetPosition);
+        backRight.setTargetPosition(-targetPosition);
+
+        frontLeft.setPower(power);
+        frontRight.setPower(-power);
+        backLeft.setPower(power);
+        backRight.setPower(-power);
+
 
         while (isNotAtTargetPosition());
 
 
-        frontLeft.setPower(0);
-        backLeft.setPower(0);
-        frontRight.setPower(0);
-        backRight.setPower(0);
+        setMotorsToZero();
     }
 
     public void setMotorsToZero(){
@@ -199,4 +183,7 @@ public class Hardware {
                 frontRight.getCurrentPosition() <= frontRight.getTargetPosition() &&
                 backRight.getCurrentPosition() <= backRight.getTargetPosition();
     }
+
+
+
 }

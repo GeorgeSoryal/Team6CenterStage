@@ -21,6 +21,7 @@ public class TeleOpMain extends LinearOpMode {
         telemetry.addData("TeleOp: ", "Starting...");
         telemetry.update();
 
+        hw.setMotorsToZero();
         while (opModeIsActive()) {
             //temporary code
             telemetry.addData("TeleOp: ", "opModeActive");
@@ -36,7 +37,7 @@ public class TeleOpMain extends LinearOpMode {
             double maxPower = Math.max(Math.abs(drive) + Math.abs(turn) + Math.abs(strafe), 1);
 
 
-            //to do: verify this works
+            //driving code
             telemetry.addData("TeleOp:", "Driving");
 
             hw.frontLeft.setPower((drive + turn ) / maxPower);
@@ -52,6 +53,16 @@ public class TeleOpMain extends LinearOpMode {
             telemetry.addData("backLeft: ", hw.backLeft.getPower());
 
             telemetry.update();
+
+            //claw code
+            boolean clawPower = gamepad2.x;
+            boolean clawMove = gamepad2.a;
+            if(clawMove && !hw.claw.clawIsMoving){ //set claw into position
+                hw.claw.turnClaw();
+            }
+            if(clawPower && !hw.claw.clawIsGrabbing){ //grab/let go of pixel
+                hw.claw.clawGrab();
+            }
 
             //cycle every 10 milliseconds, to prevent memory death --> 100 cycles/s
             sleep(10);
