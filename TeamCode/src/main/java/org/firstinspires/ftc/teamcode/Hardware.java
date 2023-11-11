@@ -1,11 +1,11 @@
 package org.firstinspires.ftc.teamcode;
 
+//import com.google.blocks.ftcrobotcontroller.runtime.CRServoAccess;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.hardware.AnalogInput;
 
 public class Hardware {
     static final double TICKS_PER_MOTOR_REV = ((((1+((double)46/17))) * (1+((double)46/11))) * 28);
@@ -18,7 +18,7 @@ public class Hardware {
     public DcMotor frontRight = null;
     public DcMotor backLeft = null;
     public DcMotor backRight = null;
-    public Claw claw;
+    public Arm arm = new Arm();
     private static OpMode opMode;
 
     public Hardware(OpMode opMode1){
@@ -66,10 +66,17 @@ public class Hardware {
             opMode.telemetry.update();
         }
 
-        claw.init(hardwareMap);
+        arm.init(hardwareMap);
 
         // Have to test this when the drive train is created
         setMotorsToZero();
+        frontLeft.setTargetPosition(0);
+        frontRight.setTargetPosition(0);
+        backLeft.setTargetPosition(0);
+        backRight.setTargetPosition(0);
+
+        backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+        frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
         frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -102,11 +109,9 @@ public class Hardware {
         frontRight.setPower(power);
         backLeft.setPower(power);
         backRight.setPower(power);
-        while(frontLeft.getCurrentPosition() <= frontRight.getCurrentPosition() &&
-                frontRight.getCurrentPosition() <= backRight.getCurrentPosition() &&
-                backLeft.getCurrentPosition() <= frontRight.getCurrentPosition() &&
-                frontLeft.getCurrentPosition() <= frontRight.getCurrentPosition()){
+        while(isNotAtTargetPosition()){
             opMode.telemetry.addData("Moving in drive: ", frontLeft.getCurrentPosition());
+            telemetryMotorPower();
             opMode.telemetry.update();
         }
 
@@ -180,33 +185,37 @@ public class Hardware {
         backLeft.setPower(0);
         backRight.setPower(0);
     }
+    public void telemetryMotorPower(){
+        opMode.telemetry.addData("FrontLeftPower: ", frontLeft.getPower());
+        opMode.telemetry.addData("FrontRightPower: ", frontRight.getPower());
+        opMode.telemetry.addData("backRightPower: ", backRight.getPower());
+        opMode.telemetry.addData("backLeftPower: ", backLeft.getPower());
+    }
     private boolean isNotAtTargetPosition(){
-        return frontLeft.getCurrentPosition() < frontLeft.getTargetPosition() &&
+        return frontLeft.getCurrentPosition() < frontLeft.getTargetPosition() /*&&
                 backLeft.getCurrentPosition() < backLeft.getTargetPosition() &&
                 frontRight.getCurrentPosition() < frontRight.getTargetPosition() &&
-                backRight.getCurrentPosition() < backRight.getTargetPosition();
+                backRight.getCurrentPosition() < backRight.getTargetPosition()*/;
     }
 
 
-    public static class Claw {
-        private boolean clawIsUp = true;
+    public static class Arm {
+        private boolean armIsUp = false;
         private boolean clawIsOpen = true;
-        public boolean clawIsMoving = false;
-        public boolean clawIsGrabbing = false;
+        public boolean armIsMoving = false;
+        public boolean clawIsInMotion = false;
         public DcMotor turnMotor = null;
         public Servo clawServo1 = null;
         public Servo clawServo2 = null;
 
-
-
         public void init(HardwareMap hardwareMap){
             try{
-                turnMotor = hardwareMap.dcMotor.get("turnMotor"); //to do: add turnMotor to hardwareMap config in the driver station
+                turnMotor = hardwareMap.dcMotor.get("turnMotor");
                 turnMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             } catch (Exception e){
-                Hardware.opMode.telemetry.addData("turnMotor: ", "Error");
+                opMode.telemetry.addData("turnMotor: ", "Error");
             } finally {
-                Hardware.opMode.telemetry.update();
+                opMode.telemetry.update();
             }
 
             try {
@@ -232,10 +241,10 @@ public class Hardware {
         //TEST 1: figure out good distance values for these two methods
         //TEST 2: figure out good power values for these two methods
         public void turnClaw(){
-            clawIsMoving = true;
+            armIsMoving = true;
             double distance = 1;
 
-            if(clawIsUp){
+            if(armIsUp){
                 turnMotor.setTargetPosition((int) (distance * TICKS_PER_INCH));
                 turnMotor.setPower(0.4); //TEST 2: figure out good power for this
             } else {
@@ -248,12 +257,12 @@ public class Hardware {
             }
 
             turnMotor.setPower(0);
-            clawIsUp = !clawIsUp;
-            clawIsMoving = false;
+            armIsUp = !armIsUp;
+            armIsMoving = false;
         }
 
         public void clawGrab(){
-            clawIsGrabbing = true;
+            clawIsInMotion = true;
             double distance = 0.25;
 
             if(clawIsOpen){ //close claw
@@ -265,7 +274,7 @@ public class Hardware {
             }
 
             clawIsOpen = !clawIsOpen;
-            clawIsGrabbing = false;
+            clawIsInMotion = false;
         }
     }
 
