@@ -16,10 +16,14 @@ public class Auto extends LinearOpMode {
 
         waitForStart();
 
-        hw.drive(0.5, 20);
+        hw.drive(0.8, 31);
+        //hw.arm.turnMotor.setPower(0.25);
         while(opModeIsActive()){
             //do stuff
-
+            telemetry.addData("FrontLeft Power: ", hw.frontLeft.getPower());
+            telemetry.addData("FrontRight Power: ", hw.frontRight.getPower());
+            telemetry.addData("BackLeft Power: ", hw.backLeft.getPower());
+            telemetry.addData("BackRight Power: ", hw.backRight.getPower());
 
             //cycle every 10 milliseconds, to prevent memory death --> 100 cycles/s
             sleep(10);

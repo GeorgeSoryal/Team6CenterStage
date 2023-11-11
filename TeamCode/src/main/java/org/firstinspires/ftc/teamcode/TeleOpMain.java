@@ -40,28 +40,29 @@ public class TeleOpMain extends LinearOpMode {
             //driving code
             telemetry.addData("TeleOp:", "Driving");
 
-            hw.frontLeft.setPower((drive + turn ) / maxPower);
+            hw.frontLeft.setPower(-((drive + turn + strafe) / maxPower));
             telemetry.addData("frontLeft: ", hw.frontLeft.getPower());
 
-            hw.frontRight.setPower((drive - turn) / maxPower);
+            hw.frontRight.setPower(((drive - turn - strafe) / maxPower));
             telemetry.addData("frontRight: ", hw.frontRight.getPower());
 
-            hw.backRight.setPower((drive + turn) / maxPower);
+            hw.backRight.setPower(((drive - turn + strafe) / maxPower));
             telemetry.addData("backRight: ", hw.backRight.getPower());
 
-            hw.backLeft.setPower((drive - turn) / maxPower);
+            hw.backLeft.setPower(-((drive + turn - strafe) / maxPower));
             telemetry.addData("backLeft: ", hw.backLeft.getPower());
+
 
             telemetry.update();
 
             //claw code
             boolean clawPower = gamepad2.x;
             boolean clawMove = gamepad2.a;
-            if(clawMove && !hw.claw.clawIsMoving){ //set claw into position
-                hw.claw.turnClaw();
+            if(clawMove && !hw.arm.armIsMoving){ //set claw into position
+                hw.arm.turnClaw();
             }
-            if(clawPower && !hw.claw.clawIsGrabbing){ //grab/let go of pixel
-                hw.claw.clawGrab();
+            if(clawPower && !hw.arm.clawIsInMotion){ //grab/let go of pixel
+                hw.arm.clawGrab();
             }
 
             //cycle every 10 milliseconds, to prevent memory death --> 100 cycles/s
