@@ -1,13 +1,13 @@
 package org.firstinspires.ftc.teamcode;
 
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.opMode;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import static org.firstinspires.ftc.teamcode.Hardware.TICKS_PER_INCH;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
-public class Claw{
+public class Claw extends Hardware{
     private boolean clawIsUp = true;
     private boolean clawIsOpen = true;
     public boolean clawIsMoving = false;
@@ -15,6 +15,12 @@ public class Claw{
     public DcMotor turnMotor = null;
     public Servo clawServo1 = null;
     public Servo clawServo2 = null;
+    private OpMode opMode;
+
+    public Claw(OpMode opMode1) {
+        super(opMode1);
+    }
+
 
     public void init(HardwareMap hardwareMap){
         try{
@@ -30,7 +36,7 @@ public class Claw{
             clawServo1 = hardwareMap.servo.get("clawServo1");
             clawServo1.setPosition(0);
         } catch (Exception e){
-            opMode.telemetry.addData("clawSevo1: ", "Error");
+            opMode.telemetry.addData("clawServo1: ", "Error");
         } finally {
             opMode.telemetry.update();
         }
@@ -40,7 +46,7 @@ public class Claw{
             clawServo2.setDirection(Servo.Direction.REVERSE);
             clawServo2.setPosition(0);
         } catch (Exception e){
-            opMode.telemetry.addData("clawSevo1: ", "Error");
+            opMode.telemetry.addData("clawServo2: ", "Error");
         } finally {
             opMode.telemetry.update();
         }

@@ -16,11 +16,12 @@ public class Hardware {
     public DcMotor frontRight = null;
     public DcMotor backLeft = null;
     public DcMotor backRight = null;
-    public Claw claw = new Claw();
+    public Claw claw;
     private final OpMode opMode;
 
     public Hardware(OpMode opMode1){
         opMode = opMode1;
+        claw = new Claw(opMode);
     }
     public void init(HardwareMap hardwareMap) {
         try {
