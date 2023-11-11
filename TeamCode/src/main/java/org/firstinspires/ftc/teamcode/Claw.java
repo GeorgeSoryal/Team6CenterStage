@@ -1,17 +1,12 @@
 package org.firstinspires.ftc.teamcode;
 
 import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.opMode;
+import static org.firstinspires.ftc.teamcode.Hardware.TICKS_PER_INCH;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class Claw{
-
-    final private double TICKS_PER_MOTOR_REV = ((((1+((double)46/17))) * (1+((double)46/11))) * 28);
-    final private double DRIVE_GEAR_REDUCTION = 1.0;
-    final private double WHEEL_DIAMETER_INCHES = 3.78;
-    final private double TICKS_PER_INCH = (TICKS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION)/ (WHEEL_DIAMETER_INCHES * 3.1415);
-
     private boolean clawIsUp = true;
     private boolean clawIsOpen = true;
     public boolean clawIsMoving = false;
