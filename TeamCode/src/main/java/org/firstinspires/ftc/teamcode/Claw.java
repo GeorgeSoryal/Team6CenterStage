@@ -5,6 +5,7 @@ import static org.firstinspires.ftc.teamcode.Hardware.TICKS_PER_INCH;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
 
 public class Claw{
     private boolean clawIsUp = true;
@@ -12,7 +13,8 @@ public class Claw{
     public boolean clawIsMoving = false;
     public boolean clawIsGrabbing = false;
     public DcMotor turnMotor = null;
-    public DcMotor clawMotor = null;
+    public Servo clawServo1 = null;
+    public Servo clawServo2 = null;
 
     public void init(HardwareMap hardwareMap){
         try{
@@ -25,10 +27,20 @@ public class Claw{
         }
 
         try {
-            clawMotor = hardwareMap.dcMotor.get("clawMotor"); //to do: add clawMotor to hardwareMap config in the driver station
-            clawMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            clawServo1 = hardwareMap.servo.get("clawServo1");
+            clawServo1.setPosition(0);
         } catch (Exception e){
-            opMode.telemetry.addData("clawMotor: ", "Error");
+            opMode.telemetry.addData("clawSevo1: ", "Error");
+        } finally {
+            opMode.telemetry.update();
+        }
+
+        try {
+            clawServo2 = hardwareMap.servo.get("clawServo2");
+            clawServo2.setDirection(Servo.Direction.REVERSE);
+            clawServo2.setPosition(0);
+        } catch (Exception e){
+            opMode.telemetry.addData("clawSevo1: ", "Error");
         } finally {
             opMode.telemetry.update();
         }
@@ -57,20 +69,17 @@ public class Claw{
 
     public void clawGrab(){
         clawIsGrabbing = true;
-        double distance = 1; //TEST 1: figure out good value to set this to
+        double distance = 0.25;
 
-        if(clawIsOpen){
-            clawMotor.setTargetPosition((int)(distance * TICKS_PER_INCH));
-            clawMotor.setPower(0.4); //TEST 2: figure out good power for this
-        } else {
-            clawMotor.setTargetPosition((int)(-distance * TICKS_PER_INCH));
-            clawMotor.setPower(-0.4); //TEST 2: this too
+        if(clawIsOpen){ //close claw
+            clawServo1.setPosition(distance);
+            clawServo2.setPosition(distance);
+        } else { //open claw
+            clawServo1.setPosition(0);
+            clawServo2.setPosition(0);
         }
 
-        while (clawMotor.getCurrentPosition() <= clawMotor.getTargetPosition()){}
-
         clawIsOpen = !clawIsOpen;
-        clawMotor.setPower(0);
         clawIsGrabbing = false;
     }
 }
