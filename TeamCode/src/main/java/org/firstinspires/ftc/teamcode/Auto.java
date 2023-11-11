@@ -16,9 +16,9 @@ public class Auto extends LinearOpMode {
 
         waitForStart();
 
+        hw.drive(0.4, 8.0);
         while(opModeIsActive()){
             //do stuff
-            hw.drive(0.5, 20);
 
             //cycle every 10 milliseconds, to prevent memory death --> 100 cycles/s
             sleep(10);
