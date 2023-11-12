@@ -16,7 +16,7 @@ public class Auto extends LinearOpMode {
 
         waitForStart();
 
-        hw.drive(0.8, 31);
+        hw.drive(0.8, 26.5);
         //hw.arm.turnMotor.setPower(0.25);
         while(opModeIsActive()){
             //do stuff

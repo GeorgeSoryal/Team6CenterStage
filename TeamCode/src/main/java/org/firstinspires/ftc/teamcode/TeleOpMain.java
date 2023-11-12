@@ -24,41 +24,38 @@ public class TeleOpMain extends LinearOpMode {
         hw.setMotorsToZero();
         while (opModeIsActive()) {
             //temporary code
-            telemetry.addData("TeleOp: ", "opModeActive");
+            //telemetry.addData("TeleOp: ", "opModeActive");
 
-            double drive = -curveInput(gamepad1.left_stick_y);
-            double turn = curveInput(gamepad1.right_stick_x);
-            double strafe = curveInput(gamepad1.left_stick_x);
+//            double drive = -curveInput(gamepad1.left_stick_y);
+//            double turn = curveInput(gamepad1.right_stick_x);
+//            double strafe = curveInput(gamepad1.left_stick_x);
 
-//            double drive = -gamepad1.left_stick_y;
-//            double turn = gamepad1.right_stick_x;
-//            double strafe = gamepad1.left_stick_x;
+            double drive = -gamepad1.left_stick_y;
+            double turn = gamepad1.right_stick_x;
+            double strafe = gamepad1.left_stick_x;
 
             double maxPower = Math.max(Math.abs(drive) + Math.abs(turn) + Math.abs(strafe), 1);
 
 
             //driving code
-            telemetry.addData("TeleOp:", "Driving");
+            //telemetry.addData("TeleOp:", "Driving");
 
-            hw.frontLeft.setPower(-((drive + turn + strafe) / maxPower));
-            telemetry.addData("frontLeft: ", hw.frontLeft.getPower());
+            hw.frontLeft.setPower(((drive + turn + strafe) / maxPower));
 
             hw.frontRight.setPower(((drive - turn - strafe) / maxPower));
-            telemetry.addData("frontRight: ", hw.frontRight.getPower());
 
             hw.backRight.setPower(((drive - turn + strafe) / maxPower));
-            telemetry.addData("backRight: ", hw.backRight.getPower());
 
-            hw.backLeft.setPower(-((drive + turn - strafe) / maxPower));
-            telemetry.addData("backLeft: ", hw.backLeft.getPower());
+            hw.backLeft.setPower(((drive + turn - strafe) / maxPower));
 
+            //hw.telemetryMotorPower();
 
             telemetry.update();
 
             //claw code
-            boolean clawPower = gamepad2.x;
-            boolean clawMove = gamepad2.a;
-            if(clawMove && !hw.arm.armIsMoving){ //set claw into position
+            boolean clawPower = gamepad2.right_bumper;
+            boolean armMove = gamepad2.left_bumper;
+            if(armMove && !hw.arm.armIsMoving){ //set claw into position
                 hw.arm.turnClaw();
             }
             if(clawPower && !hw.arm.clawIsInMotion){ //grab/let go of pixel
@@ -73,7 +70,7 @@ public class TeleOpMain extends LinearOpMode {
         hw.setMotorsToZero();
     }
 
-    public double curveInput(double input) {
+    public double curveInput(double input) { //NOTE: new function needed, causes drift
         /*
             curve function:
             y = (-2.09 / (1+e^4x)) + 1.04

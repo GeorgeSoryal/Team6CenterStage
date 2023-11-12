@@ -11,7 +11,7 @@ public class Hardware {
     static final double TICKS_PER_MOTOR_REV = ((((1+((double)46/17))) * (1+((double)46/11))) * 28);
     static final double DRIVE_GEAR_REDUCTION = 1.0;
     static final double WHEEL_DIAMETER_INCHES = 3.78;
-    static final double TICKS_PER_INCH = (TICKS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION)/ (WHEEL_DIAMETER_INCHES * 3.1415);
+    static final double TICKS_PER_INCH = (TICKS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) / (WHEEL_DIAMETER_INCHES * 3.1415);
     final private double DRIVE_SPEED = 0.6;
 //    final private double TURN_SPEED = 0.5;
     public DcMotor frontLeft = null;
@@ -70,13 +70,10 @@ public class Hardware {
 
         // Have to test this when the drive train is created
         setMotorsToZero();
-        frontLeft.setTargetPosition(0);
-        frontRight.setTargetPosition(0);
-        backLeft.setTargetPosition(0);
-        backRight.setTargetPosition(0);
+        setAllTargets(0);
 
         backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
-        frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
 
         frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -100,10 +97,7 @@ public class Hardware {
 
         int targetPosition = (int)(inches*TICKS_PER_INCH);
         opMode.telemetry.addData("targetPosition linear drive: ", targetPosition);
-        frontLeft.setTargetPosition(targetPosition);
-        frontRight.setTargetPosition(targetPosition);
-        backLeft.setTargetPosition(targetPosition);
-        backRight.setTargetPosition(targetPosition);
+        setAllTargets(targetPosition);
 
         frontLeft.setPower(power);
         frontRight.setPower(power);
@@ -125,10 +119,7 @@ public class Hardware {
         opMode.telemetry.addData("targetPosition for linear drive: ", targetPosition);
         opMode.telemetry.update();
 
-        frontLeft.setTargetPosition(targetPosition);
-        frontRight.setTargetPosition(targetPosition);
-        backLeft.setTargetPosition(targetPosition);
-        backRight.setTargetPosition(targetPosition);
+        setAllTargets(targetPosition);
 
         frontLeft.setPower(frontLeftPower);
         frontRight.setPower(frontRightPower);
@@ -198,8 +189,15 @@ public class Hardware {
                 backRight.getCurrentPosition() < backRight.getTargetPosition()*/;
     }
 
+    public void setAllTargets(int targetPosition){
+        frontLeft.setTargetPosition(targetPosition);
+        frontRight.setTargetPosition(targetPosition);
+        backLeft.setTargetPosition(targetPosition);
+        backRight.setTargetPosition(targetPosition);
+    }
 
     public static class Arm {
+        private final double TICKS_PER_MOTOR_REV = 28;
         private boolean armIsUp = false;
         private boolean clawIsOpen = true;
         public boolean armIsMoving = false;
@@ -209,16 +207,19 @@ public class Hardware {
         public Servo clawServo2 = null;
 
         public void init(HardwareMap hardwareMap){
-            try{
+            try{ //arm motor
                 turnMotor = hardwareMap.dcMotor.get("turnMotor");
-                turnMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                turnMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                turnMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+                turnMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE); //prevents motor from falling due to gravity
+
             } catch (Exception e){
                 opMode.telemetry.addData("turnMotor: ", "Error");
             } finally {
                 opMode.telemetry.update();
             }
 
-            try {
+            try { //claw servo 1
                 clawServo1 = hardwareMap.servo.get("clawServo1");
                 clawServo1.setPosition(0);
             } catch (Exception e){
@@ -227,7 +228,7 @@ public class Hardware {
                 opMode.telemetry.update();
             }
 
-            try {
+            try { //claw servo 2
                 clawServo2 = hardwareMap.servo.get("clawServo2");
                 clawServo2.setDirection(Servo.Direction.REVERSE);
                 clawServo2.setPosition(0);
@@ -242,19 +243,32 @@ public class Hardware {
         //TEST 2: figure out good power values for these two methods
         public void turnClaw(){
             armIsMoving = true;
-            double distance = 1;
+            double distance = 1250;
 
-            if(armIsUp){
-                turnMotor.setTargetPosition((int) (distance * TICKS_PER_INCH));
-                turnMotor.setPower(0.4); //TEST 2: figure out good power for this
-            } else {
-                turnMotor.setTargetPosition((int) (-distance * TICKS_PER_INCH));
-                turnMotor.setPower(-0.4); //TEST 2: this too
+            if(armIsUp){ //move arm down
+                turnMotor.setTargetPosition((int) (distance));
+                turnMotor.setPower(-0.4); //TEST 2: figure out good power for this
+
+                while(turnMotor.getCurrentPosition() < turnMotor.getTargetPosition()){
+                    opMode.telemetry.addData("turnMotor pos: ", turnMotor.getCurrentPosition());
+                    opMode.telemetry.addData("turnMotor target: ", turnMotor.getTargetPosition());
+                    opMode.telemetry.update();
+                }
+
+            } else { //move arm up
+                turnMotor.setTargetPosition((int) (-distance));
+                turnMotor.setPower(0.4); //TEST 2: this too
+
+                while(turnMotor.getCurrentPosition() > turnMotor.getTargetPosition()){
+                    opMode.telemetry.addData("turnMotor pos: ", turnMotor.getCurrentPosition());
+                    opMode.telemetry.addData("turnMotor target: ", turnMotor.getTargetPosition());
+                    opMode.telemetry.update();
+                }
             }
 
-            while(turnMotor.getCurrentPosition() < turnMotor.getTargetPosition()){
-                opMode.telemetry.addData("Turning: ", turnMotor.getCurrentPosition());
-            }
+
+
+
 
             turnMotor.setPower(0);
             armIsUp = !armIsUp;
@@ -276,6 +290,8 @@ public class Hardware {
             clawIsOpen = !clawIsOpen;
             clawIsInMotion = false;
         }
+
+
     }
 
 
