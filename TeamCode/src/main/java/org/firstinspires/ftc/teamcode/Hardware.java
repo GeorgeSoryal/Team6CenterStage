@@ -237,38 +237,34 @@ public class Hardware {
             } finally {
                 opMode.telemetry.update();
             }
-        }
 
-        //TEST 1: figure out good distance values for these two methods
-        //TEST 2: figure out good power values for these two methods
+
+        }
         public void turnClaw(){
             armIsMoving = true;
-            double distance = 1250;
+            double distance = 700;
+            double offset = 0; //default position when arm is down
 
             if(armIsUp){ //move arm down
-                turnMotor.setTargetPosition((int) (distance));
-                turnMotor.setPower(-0.4); //TEST 2: figure out good power for this
-
-                while(turnMotor.getCurrentPosition() < turnMotor.getTargetPosition()){
-                    opMode.telemetry.addData("turnMotor pos: ", turnMotor.getCurrentPosition());
-                    opMode.telemetry.addData("turnMotor target: ", turnMotor.getTargetPosition());
-                    opMode.telemetry.update();
-                }
-
-            } else { //move arm up
-                turnMotor.setTargetPosition((int) (-distance));
-                turnMotor.setPower(0.4); //TEST 2: this too
+                turnMotor.setTargetPosition((int)(offset));//distsacne * 0.45
+                turnMotor.setPower(0.2);
 
                 while(turnMotor.getCurrentPosition() > turnMotor.getTargetPosition()){
                     opMode.telemetry.addData("turnMotor pos: ", turnMotor.getCurrentPosition());
                     opMode.telemetry.addData("turnMotor target: ", turnMotor.getTargetPosition());
                     opMode.telemetry.update();
                 }
+
+            } else { //move arm up
+                turnMotor.setTargetPosition((int) (distance + offset)); //-distance * 0.2
+                turnMotor.setPower(-0.2);//goes down in position
+
+                while(turnMotor.getCurrentPosition() < turnMotor.getTargetPosition()){
+                    opMode.telemetry.addData("turnMotor pos: ", turnMotor.getCurrentPosition());
+                    opMode.telemetry.addData("turnMotor target: ", turnMotor.getTargetPosition());
+                    opMode.telemetry.update();
+                }
             }
-
-
-
-
 
             turnMotor.setPower(0);
             armIsUp = !armIsUp;

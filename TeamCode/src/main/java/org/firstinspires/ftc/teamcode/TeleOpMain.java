@@ -54,12 +54,20 @@ public class TeleOpMain extends LinearOpMode {
 
             //claw code
             boolean clawPower = gamepad2.right_bumper;
-            boolean armMove = gamepad2.left_bumper;
-            if(armMove && !hw.arm.armIsMoving){ //set claw into position
+            boolean armMoveUp = gamepad2.x;
+            boolean armMoveDown = gamepad2.b;
+            /*if(armMove && !hw.arm.armIsMoving){ //set claw into position
                 hw.arm.turnClaw();
             }
             if(clawPower && !hw.arm.clawIsInMotion){ //grab/let go of pixel
                 hw.arm.clawGrab();
+            }*/
+            if(armMoveUp && !armMoveDown){
+                hw.arm.turnMotor.setPower(0.05);
+            } else if(!armMoveUp && armMoveDown){
+                hw.arm.turnMotor.setPower(-0.05 /  6);
+            } else {
+                hw.arm.turnMotor.setPower(0);
             }
 
             //cycle every 10 milliseconds, to prevent memory death --> 100 cycles/s
