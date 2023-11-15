@@ -221,7 +221,7 @@ public class Hardware {
 
             try { //claw servo 1
                 clawServo1 = hardwareMap.servo.get("clawServo1");
-                clawServo1.setPosition(0);
+                clawServo1.setPosition(0.3);
             } catch (Exception e){
                 opMode.telemetry.addData("clawServo1: ", "Error");
             } finally {
@@ -231,7 +231,7 @@ public class Hardware {
             try { //claw servo 2
                 clawServo2 = hardwareMap.servo.get("clawServo2");
                 clawServo2.setDirection(Servo.Direction.REVERSE);
-                clawServo2.setPosition(0);
+                clawServo2.setPosition(0.3);
             } catch (Exception e){
                 opMode.telemetry.addData("clawServo2: ", "Error");
             } finally {
@@ -271,20 +271,36 @@ public class Hardware {
             armIsMoving = false;
         }
 
-        public void clawGrab(){
-            clawIsInMotion = true;
-            double distance = 0.25;
+        /*public void clawGrab(){
+            //clawIsInMotion = true;
 
             if(clawIsOpen){ //close claw
-                clawServo1.setPosition(distance);
-                clawServo2.setPosition(distance);
+                clawServo1.setPosition(0.45);
+                clawServo2.setPosition(0.45);
+                opMode.telemetry.addData("claw: ", "closing claw");
             } else { //open claw
-                clawServo1.setPosition(0);
-                clawServo2.setPosition(0);
+                clawServo1.setPosition(0.33);
+                clawServo2.setPosition(0.33);
+                opMode.telemetry.addData("claw: ", "opening claw");
             }
+            opMode.telemetry.update();
 
             clawIsOpen = !clawIsOpen;
-            clawIsInMotion = false;
+            //clawIsInMotion = false;
+        }*/
+
+        public void clawGrab(){
+            clawServo1.setPosition(0.4);
+            clawServo2.setPosition(0.4);
+            opMode.telemetry.addData("claw: ", "closing claw");
+            opMode.telemetry.update();
+        }
+
+        public void clawOpen(){
+            clawServo1.setPosition(0.3);
+            clawServo2.setPosition(0.3);
+            opMode.telemetry.addData("claw: ", "closing claw");
+            opMode.telemetry.update();
         }
 
 

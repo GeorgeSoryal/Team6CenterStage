@@ -50,10 +50,9 @@ public class TeleOpMain extends LinearOpMode {
 
             //hw.telemetryMotorPower();
 
-            telemetry.update();
-
             //claw code
-            boolean clawPower = gamepad2.right_bumper;
+            boolean clawOpen = gamepad2.right_bumper;
+            boolean clawGrab = gamepad2.left_bumper;
             boolean armMoveUp = gamepad2.x;
             boolean armMoveDown = gamepad2.b;
             /*if(armMove && !hw.arm.armIsMoving){ //set claw into position
@@ -62,14 +61,24 @@ public class TeleOpMain extends LinearOpMode {
             if(clawPower && !hw.arm.clawIsInMotion){ //grab/let go of pixel
                 hw.arm.clawGrab();
             }*/
-            if(armMoveUp && !armMoveDown){
+            if(clawGrab){
+                hw.arm.clawGrab();
+            } else if(clawOpen){
+                hw.arm.clawOpen();
+            }
+
+            if(armMoveUp){
                 hw.arm.turnMotor.setPower(0.05);
-            } else if(!armMoveUp && armMoveDown){
+                telemetry.addData("arm: ", "GOING UP");
+            } else if(armMoveDown){
                 hw.arm.turnMotor.setPower(-0.05 /  6);
+                telemetry.addData("arm: ", "going down");
             } else {
                 hw.arm.turnMotor.setPower(0);
             }
 
+
+            telemetry.update();
             //cycle every 10 milliseconds, to prevent memory death --> 100 cycles/s
             sleep(10);
         }
