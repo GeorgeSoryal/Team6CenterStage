@@ -13,6 +13,21 @@ public class TeleOpMain extends LinearOpMode {
         Hardware hw = new Hardware(this);
         hw.init(hardwareMap);
 
+        boolean isAPressed = false;
+
+        //arm servo values (servo1 = claw left) (servo2 = claw right)
+        //open
+        final double servo1open = 0.13;
+        final double servo2open = 0.133; //claw2 = more movement
+        //close
+        final double servo1close = servo1open + 0.185;
+        final double servo2close = servo2open + 0.160;
+
+
+        //arm values
+        final double armDown = 0;
+        final double armUp = -900;
+
         telemetry.addData("TeleOp: ", "Ready for start, Initialized");
         telemetry.update();
 
@@ -21,57 +36,48 @@ public class TeleOpMain extends LinearOpMode {
         telemetry.addData("TeleOp: ", "Starting...");
         telemetry.update();
 
+
+
+
         hw.setMotorsToZero();
         while (opModeIsActive()) {
-            //temporary code
-
             double drive = -gamepad1.left_stick_y;
             double turn = gamepad1.right_stick_x;
             double strafe = gamepad1.left_stick_x;
 
             double maxPower = Math.max(Math.abs(drive) + Math.abs(turn) + Math.abs(strafe), 1);
 
+            hw.frontLeft.setPower(((drive - turn - strafe) / maxPower));
+            hw.frontRight.setPower(((drive + turn + strafe) / maxPower));
+            hw.backRight.setPower(((drive + turn - strafe) / maxPower));
+            hw.backLeft.setPower(((drive - turn + strafe) / maxPower));
 
-            //driving code
 
-            hw.frontLeft.setPower(((drive + turn + strafe) / maxPower));
+            if(gamepad2.a){
+                if(Math.round((hw.clawLeft.getPosition() * 1000))/1000.0 == servo1open){
+                    if(!isAPressed){
+                        hw.clawLeft.setPosition(servo1close);
+                        hw.clawRight.setPosition(servo2close);
+                    }
+                }else{
+                    if(!isAPressed){
+                        hw.clawLeft.setPosition(servo1open);
+                        hw.clawRight.setPosition(servo2open);
+                    }
+                }
+                isAPressed = true;
+            }else{
+                isAPressed = false;
+            }
 
-            hw.frontRight.setPower(((drive - turn - strafe) / maxPower));
 
-            hw.backRight.setPower(((drive - turn + strafe) / maxPower));
-
-            hw.backLeft.setPower(((drive + turn - strafe) / maxPower));
+            if(gamepad2.left_stick_y == 0){
+                hw.clawArm.setPower(0);
+            }else{
+                hw.clawArm.setPower(gamepad2.left_stick_y);
+            }
 
             hw.telemetryHardware();
-
-            //claw code
-            boolean clawOpen = gamepad2.right_bumper;
-            boolean clawGrab = gamepad2.left_bumper;
-            boolean armMoveUp = gamepad2.x;
-            boolean armMoveDown = gamepad2.b;
-            /*if(armMove && !hw.arm.armIsMoving){ //set claw into position
-                hw.arm.turnClaw();
-            }
-            if(clawPower && !hw.arm.clawIsInMotion){ //grab/let go of pixel
-                hw.arm.clawGrab();
-            }*/
-//            if(clawGrab){
-//                hw.arm.clawGrab();
-//            } else if(clawOpen){
-//                hw.arm.clawOpen();
-//            }
-//
-//            if(armMoveUp){
-//                hw.arm.turnMotor.setPower(0.05);
-//                telemetry.addData("arm: ", "GOING UP");
-//            } else if(armMoveDown){
-//                hw.arm.turnMotor.setPower(-0.05 /  6);
-//                telemetry.addData("arm: ", "going down");
-//            } else {
-//                hw.arm.turnMotor.setPower(0);
-//            }
-
-
             telemetry.update();
             //cycle every 10 milliseconds, to prevent memory death --> 100 cycles/s
             sleep(10);

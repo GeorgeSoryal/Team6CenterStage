@@ -51,27 +51,27 @@ public class TeleOpTwo extends LinearOpMode {
 
             hw.setPower(frontRightPower,backRightPower,frontLeftPower,backLeftPower);
 
-            telemetry.addData("Arm Power", gamepad2.left_stick_y);
-            telemetry.addData("Arm Position", hw.clawArm.getCurrentPosition());
+            telemetry.addData("Arm Power: ", gamepad2.left_stick_y);
+            telemetry.addData("Arm Position: ", hw.clawArm.getCurrentPosition());
 
             if(gamepad2.a){
-                telemetry.addData("servo pos",((int)(hw.clawLeft.getPosition() * 1000))/1000.0);
-                telemetry.addData("servo target", servo1open);
+                telemetry.addData("servo pos: ",((int)(hw.clawLeft.getPosition() * 1000))/1000.0);
+                telemetry.addData("servo target: ", servo1open);
                 if(Math.round((hw.clawLeft.getPosition() * 1000))/1000.0 == servo1open){
                     if(!isAPressed){
                         hw.clawLeft.setPosition(servo1close);
                         hw.clawRight.setPosition(servo2close);
                         telemetry.addData("Opening servo", "");
-                        telemetry.addData("Servo 1", hw.clawLeft.getPosition());
-                        telemetry.addData("Servo 2", hw.clawRight.getPosition());
+                        telemetry.addData("Servo 1: ", hw.clawLeft.getPosition());
+                        telemetry.addData("Servo 2: ", hw.clawRight.getPosition());
                     }
                 }else{
                     if(!isAPressed){
                         hw.clawLeft.setPosition(servo1open);
                         hw.clawRight.setPosition(servo2open);
                         telemetry.addData("Closing servo", "");
-                        telemetry.addData("Servo 1", hw.clawLeft.getPosition());
-                        telemetry.addData("Servo 2", hw.clawRight.getPosition());
+                        telemetry.addData("Servo 1: ", hw.clawLeft.getPosition());
+                        telemetry.addData("Servo 2: ", hw.clawRight.getPosition());
                     }
                 }
                 isAPressed = true;
@@ -79,7 +79,7 @@ public class TeleOpTwo extends LinearOpMode {
                 isAPressed = false;
             }
 
-            if(gamepad2.y){
+            if(gamepad2.y){ //unused code - redundant
                 if(!isYPressed){
                     if(armGoMode == 0){
                         if(priorMode == 2){
@@ -104,9 +104,9 @@ public class TeleOpTwo extends LinearOpMode {
             telemetry.addData("left stick y", gamepad2.left_stick_y);
             telemetry.addData("assocated boolean", gamepad2.left_stick_y != 0);
 
-            if(armGoMode == 1 && hw.clawArm.getCurrentPosition() > armUp){
+            if(armGoMode == 1 && hw.clawArm.getCurrentPosition() > armUp){ //unused code - redundant
                 hw.clawArm.setPower(-0.5);
-            }else if(armGoMode == 2 && hw.clawArm.getCurrentPosition() < armDown){
+            }else if(armGoMode == 2 && hw.clawArm.getCurrentPosition() < armDown){ //unused code - redundant
                 hw.clawArm.setPower(0.5);
             }else if(gamepad2.left_stick_y == 0){
                 hw.clawArm.setPower(0);

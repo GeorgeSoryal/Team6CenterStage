@@ -19,9 +19,9 @@ public class Hardware {
     public DcMotor backLeft = null;
     public DcMotor backRight = null;
     //public Arm arm = new Arm();
-    public DcMotor turnMotor = null;
-    public Servo clawServo1 = null;
-    public Servo clawServo2 = null;
+    public DcMotor clawArm = null;
+    public Servo clawLeft = null;
+    public Servo clawRight = null;
     private static OpMode opMode;
 
     public Hardware(OpMode opMode1){
@@ -30,8 +30,10 @@ public class Hardware {
     }
     public void init(HardwareMap hardwareMap) {
         try {
-            frontLeft = hardwareMap.dcMotor.get("frontLeftMotor");
+            frontLeft = hardwareMap.dcMotor.get("fl");
             frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             opMode.telemetry.addData("FrontLeftMotor: ", "Initialized");
         } catch (Exception e) {
             opMode.telemetry.addData("FrontLeftMotor: ", "Error");
@@ -40,8 +42,10 @@ public class Hardware {
         }
 
         try {
-            frontRight = hardwareMap.dcMotor.get("frontRightMotor");
+            frontRight = hardwareMap.dcMotor.get("fr");
             frontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             opMode.telemetry.addData("FrontRightMotor: ", "Initialized.");
         } catch (Exception e) {
             opMode.telemetry.addData("FrontRightMotor: ", "Error");
@@ -50,8 +54,10 @@ public class Hardware {
         }
 
         try {
-            backRight = hardwareMap.dcMotor.get("backRightMotor");
+            backRight = hardwareMap.dcMotor.get("br");
             backRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            backRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             opMode.telemetry.addData("BackRightMotor: ", "Initialized.");
         } catch (Exception e) {
             opMode.telemetry.addData("BackRightMotor: ", "Error");
@@ -60,8 +66,10 @@ public class Hardware {
         }
 
         try {
-            backLeft = hardwareMap.dcMotor.get("backLeftMotor");
+            backLeft = hardwareMap.dcMotor.get("bl");
             backLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            backLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             opMode.telemetry.addData("BackLeftMotor: ", "Initialized.");
         } catch (Exception e) {
             opMode.telemetry.addData("BackLeftMotor: ", "Error");
@@ -69,27 +77,29 @@ public class Hardware {
             opMode.telemetry.update();
         }
 
-        try { //turnMotor
-            turnMotor = hardwareMap.dcMotor.get("turnMotor");
-            turnMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            opMode.telemetry.addData("turnMotor: ", "Initialized");
+        try { //clawArm
+            clawArm = hardwareMap.get(DcMotor.class, "armClaw");
+            clawArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            clawArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            clawArm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            clawArm.setPower(0);
         } catch(Exception e){
-            opMode.telemetry.addData("turnMotor: ", "Error");
+            opMode.telemetry.addData("clawArm: ", "Error");
         }
 
         try { //claw servo 1
-            clawServo1 = hardwareMap.servo.get("clawServo1");
+            clawLeft = hardwareMap.servo.get("claw1"); // port 0
         } catch (Exception e){
-            opMode.telemetry.addData("clawServo1: ", "Error");
+            opMode.telemetry.addData("clawLeft: ", "Error");
         } finally {
             opMode.telemetry.update();
         }
 
         try { //claw servo 2
-            clawServo2 = hardwareMap.servo.get("clawServo2");
-            clawServo2.setDirection(Servo.Direction.REVERSE);
+            clawRight = hardwareMap.servo.get("claw2"); // port 1, on the right relative to the arm side
+            clawRight.setDirection(Servo.Direction.REVERSE);
         } catch (Exception e){
-            opMode.telemetry.addData("clawServo2: ", "Error");
+            opMode.telemetry.addData("clawRight: ", "Error");
         } finally {
             opMode.telemetry.update();
         }
@@ -100,104 +110,12 @@ public class Hardware {
         setMotorsToZero();
         setAllTargets(0);
 
-        backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
-        frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
-
-        frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
-        frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        backLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        backRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        backRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
         opMode.telemetry.addData("Hardware Init: ", "Success.");
         opMode.telemetry.update();
     }
-
-//    public void drive(double power, double inches){
-//        frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-//        frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-//        backLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-//        backRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-//
-//        int targetPosition = (int)(inches*TICKS_PER_INCH);
-//        opMode.telemetry.addData("targetPosition linear drive: ", targetPosition);
-//        setAllTargets(targetPosition);
-//
-//        frontLeft.setPower(power);
-//        frontRight.setPower(power);
-//        backLeft.setPower(power);
-//        backRight.setPower(power);
-//        while(isNotAtTargetPosition()){
-//            opMode.telemetry.addData("Moving in drive: ", frontLeft.getCurrentPosition());
-//            telemetryMotorPower();
-//            opMode.telemetry.update();
-//        }
-//
-//        setMotorsToZero();
-//
-//        opMode.telemetry.addData("Linear Drive complete.", "");
-//        opMode.telemetry.update();
-//    }
-//    public void drive(double frontLeftPower, double frontRightPower, double backLeftPower, double backRightPower, double inches){
-//        int targetPosition = (int)(inches*TICKS_PER_INCH);
-//        opMode.telemetry.addData("targetPosition for linear drive: ", targetPosition);
-//        opMode.telemetry.update();
-//
-//        setAllTargets(targetPosition);
-//
-//        frontLeft.setPower(frontLeftPower);
-//        frontRight.setPower(frontRightPower);
-//        backLeft.setPower(backLeftPower);
-//        backRight.setPower(backRightPower);
-//        while(isNotAtTargetPosition());
-//
-//        setMotorsToZero();
-//
-//        opMode.telemetry.addData("Linear Drive complete.", "");
-//        opMode.telemetry.update();
-//    }
-//    // for distance: right is positive, left is negative
-//    public void strafe(double distance, double power) {
-//        frontLeft.setTargetPosition((int) (distance * TICKS_PER_INCH));
-//        frontRight.setTargetPosition((int) (-distance * TICKS_PER_INCH));
-//        backLeft.setTargetPosition((int) (distance * TICKS_PER_INCH));
-//        backRight.setTargetPosition((int) (-distance * TICKS_PER_INCH));
-//
-//        frontLeft.setPower(power);
-//        frontRight.setPower(-power);
-//        backLeft.setPower(power);
-//        backRight.setPower(-power);
-//
-//        while (isNotAtTargetPosition());
-//
-//        setMotorsToZero();
-//    }
-//
-//    //positive power -> turn right, negative power -> turn left
-//    public void turn(double angle, double power){
-//        angle = (angle / 360) * TICKS_PER_MOTOR_REV;
-//        int targetPosition = (int) (angle * TICKS_PER_INCH);
-//
-//        frontLeft.setTargetPosition(targetPosition);
-//        frontRight.setTargetPosition(-targetPosition);
-//        backLeft.setTargetPosition(targetPosition);
-//        backRight.setTargetPosition(-targetPosition);
-//
-//        frontLeft.setPower(power);
-//        frontRight.setPower(-power);
-//        backLeft.setPower(power);
-//        backRight.setPower(-power);
-//
-//
-//        while (isNotAtTargetPosition());
-//
-//
-//        setMotorsToZero();
-//    }
 
     public void setMotorsToZero(){
         frontLeft.setPower(0);
@@ -211,10 +129,10 @@ public class Hardware {
         opMode.telemetry.addData("backRightPower: ", backRight.getPower());
         opMode.telemetry.addData("backLeftPower: ", backLeft.getPower());
 
-        opMode.telemetry.addData("\nclawServo1 position: ", clawServo1.getPosition());
-        opMode.telemetry.addData("clawServo2 position: ", clawServo2.getPosition());
-        opMode.telemetry.addData("\nturnMotor position: ", turnMotor.getCurrentPosition());
-        opMode.telemetry.addData("turnMotor target: ", turnMotor.getTargetPosition());
+        opMode.telemetry.addData("\nclawLeft position: ", clawLeft.getPosition());
+        opMode.telemetry.addData("clawRight position: ", clawRight.getPosition());
+        opMode.telemetry.addData("\nclawArm position: ", clawArm.getCurrentPosition());
+        opMode.telemetry.addData("clawArm target: ", clawArm.getTargetPosition());
     }
     public boolean isNotAtTargetPosition(){
         double currentPos = frontLeft.getCurrentPosition();
@@ -232,116 +150,5 @@ public class Hardware {
         backLeft.setTargetPosition(targetPosition);
         backRight.setTargetPosition(targetPosition);
     }
-
-//    public static class Arm {
-//        private final double TICKS_PER_MOTOR_REV = 28;
-//        private boolean armIsUp = false;
-//        private boolean clawIsOpen = true;
-//        public boolean armIsMoving = false;
-//        public boolean clawIsInMotion = false;
-//        public DcMotor turnMotor = null;
-//        public Servo clawServo1 = null;
-//        public Servo clawServo2 = null;
-//
-//        public void init(HardwareMap hardwareMap){
-//            try{ //arm motor
-//                turnMotor = hardwareMap.dcMotor.get("turnMotor");
-//                turnMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-//                turnMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-//                turnMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE); //prevents motor from falling due to gravity
-//
-//            } catch (Exception e){
-//                opMode.telemetry.addData("turnMotor: ", "Error");
-//            } finally {
-//                opMode.telemetry.update();
-//            }
-//
-//            try { //claw servo 1
-//                clawServo1 = hardwareMap.servo.get("clawServo1");
-//                clawServo1.setPosition(0.3);
-//            } catch (Exception e){
-//                opMode.telemetry.addData("clawServo1: ", "Error");
-//            } finally {
-//                opMode.telemetry.update();
-//            }
-//
-//            try { //claw servo 2
-//                clawServo2 = hardwareMap.servo.get("clawServo2");
-//                clawServo2.setDirection(Servo.Direction.REVERSE);
-//                clawServo2.setPosition(0.3);
-//            } catch (Exception e){
-//                opMode.telemetry.addData("clawServo2: ", "Error");
-//            } finally {
-//                opMode.telemetry.update();
-//            }
-//
-//
-//        }
-//        public void turnClaw(){
-//            armIsMoving = true;
-//            double distance = 700;
-//            double offset = 0; //default position when arm is down
-//
-//            if(armIsUp){ //move arm down
-//                turnMotor.setTargetPosition((int)(offset));//distsacne * 0.45
-//                turnMotor.setPower(0.2);
-//
-//                while(turnMotor.getCurrentPosition() > turnMotor.getTargetPosition()){
-//                    opMode.telemetry.addData("turnMotor pos: ", turnMotor.getCurrentPosition());
-//                    opMode.telemetry.addData("turnMotor target: ", turnMotor.getTargetPosition());
-//                    opMode.telemetry.update();
-//                }
-//
-//            } else { //move arm up
-//                turnMotor.setTargetPosition((int) (distance + offset)); //-distance * 0.2
-//                turnMotor.setPower(-0.2);//goes down in position
-//
-//                while(turnMotor.getCurrentPosition() < turnMotor.getTargetPosition()){
-//                    opMode.telemetry.addData("turnMotor pos: ", turnMotor.getCurrentPosition());
-//                    opMode.telemetry.addData("turnMotor target: ", turnMotor.getTargetPosition());
-//                    opMode.telemetry.update();
-//                }
-//            }
-//
-//            turnMotor.setPower(0);
-//            armIsUp = !armIsUp;
-//            armIsMoving = false;
-//        }
-
-        /*public void clawGrab(){
-            //clawIsInMotion = true;
-
-            if(clawIsOpen){ //close claw
-                clawServo1.setPosition(0.45);
-                clawServo2.setPosition(0.45);
-                opMode.telemetry.addData("claw: ", "closing claw");
-            } else { //open claw
-                clawServo1.setPosition(0.33);
-                clawServo2.setPosition(0.33);
-                opMode.telemetry.addData("claw: ", "opening claw");
-            }
-            opMode.telemetry.update();
-
-            clawIsOpen = !clawIsOpen;
-            //clawIsInMotion = false;
-        }*/
-
-//        public void clawGrab(){
-//            clawServo1.setPosition(0.4);
-//            clawServo2.setPosition(0.4);
-//            opMode.telemetry.addData("claw: ", "closing claw");
-//            opMode.telemetry.update();
-//        }
-//
-//        public void clawOpen(){
-//            clawServo1.setPosition(0.3);
-//            clawServo2.setPosition(0.3);
-//            opMode.telemetry.addData("claw: ", "closing claw");
-//            opMode.telemetry.update();
-//        }
-//
-//
-//    }
-
 
 }
