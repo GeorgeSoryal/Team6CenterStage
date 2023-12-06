@@ -24,11 +24,6 @@ public class TeleOpMain extends LinearOpMode {
         hw.setMotorsToZero();
         while (opModeIsActive()) {
             //temporary code
-            //telemetry.addData("TeleOp: ", "opModeActive");
-
-//            double drive = -curveInput(gamepad1.left_stick_y);
-//            double turn = curveInput(gamepad1.right_stick_x);
-//            double strafe = curveInput(gamepad1.left_stick_x);
 
             double drive = -gamepad1.left_stick_y;
             double turn = gamepad1.right_stick_x;
@@ -38,7 +33,6 @@ public class TeleOpMain extends LinearOpMode {
 
 
             //driving code
-            //telemetry.addData("TeleOp:", "Driving");
 
             hw.frontLeft.setPower(((drive + turn + strafe) / maxPower));
 
@@ -48,7 +42,7 @@ public class TeleOpMain extends LinearOpMode {
 
             hw.backLeft.setPower(((drive + turn - strafe) / maxPower));
 
-            //hw.telemetryMotorPower();
+            hw.telemetryHardware();
 
             //claw code
             boolean clawOpen = gamepad2.right_bumper;
@@ -61,21 +55,21 @@ public class TeleOpMain extends LinearOpMode {
             if(clawPower && !hw.arm.clawIsInMotion){ //grab/let go of pixel
                 hw.arm.clawGrab();
             }*/
-            if(clawGrab){
-                hw.arm.clawGrab();
-            } else if(clawOpen){
-                hw.arm.clawOpen();
-            }
-
-            if(armMoveUp){
-                hw.arm.turnMotor.setPower(0.05);
-                telemetry.addData("arm: ", "GOING UP");
-            } else if(armMoveDown){
-                hw.arm.turnMotor.setPower(-0.05 /  6);
-                telemetry.addData("arm: ", "going down");
-            } else {
-                hw.arm.turnMotor.setPower(0);
-            }
+//            if(clawGrab){
+//                hw.arm.clawGrab();
+//            } else if(clawOpen){
+//                hw.arm.clawOpen();
+//            }
+//
+//            if(armMoveUp){
+//                hw.arm.turnMotor.setPower(0.05);
+//                telemetry.addData("arm: ", "GOING UP");
+//            } else if(armMoveDown){
+//                hw.arm.turnMotor.setPower(-0.05 /  6);
+//                telemetry.addData("arm: ", "going down");
+//            } else {
+//                hw.arm.turnMotor.setPower(0);
+//            }
 
 
             telemetry.update();
@@ -95,4 +89,5 @@ public class TeleOpMain extends LinearOpMode {
 
         return ((-2.09 / (1 + Math.pow(Math.E, 4 * input))) + 1.04);
     }
+
 }
