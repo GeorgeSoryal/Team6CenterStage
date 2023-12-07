@@ -29,9 +29,9 @@ public class Auto extends LinearOpMode {
 
         waitForStart();
 
-        //drive(0.8, 26.5);
-        //drive(-0.8,-15, hw);
-        turn(90, 0.8);
+        drive(0.8, 26.5);
+        drive(-0.8,-15);
+        turn(360, 0.8);
 
         hw.setMotorsToZero();
     }
@@ -91,10 +91,13 @@ public class Auto extends LinearOpMode {
 
     }
 
-    //positive power -> turn right, negative power -> turn left
+    //positive power -> turn left, negative power -> turn right
     public void turn(double angle, double power){
-        angle = (angle / 360) * TICKS_PER_MOTOR_REV; //theoritically should turn 90 degrees
+        angle = (angle / 360) * (8 * TICKS_PER_MOTOR_REV); //8 motor revs = 360 degree turn
         int targetPosition = (int)angle;
+        telemetry.addData("turn target: ", targetPosition);
+        telemetry.addData("current pos: ", hw.frontLeft.getCurrentPosition());
+        telemetry.update();
 
         hw.frontLeft.setTargetPosition(targetPosition);
         hw.frontRight.setTargetPosition(-targetPosition);
