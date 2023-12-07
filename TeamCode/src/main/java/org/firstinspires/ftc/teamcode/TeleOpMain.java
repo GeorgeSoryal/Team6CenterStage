@@ -20,8 +20,8 @@ public class TeleOpMain extends LinearOpMode {
         final double servo1open = 0.13;
         final double servo2open = 0.133; //claw2 = more movement
         //close
-        final double servo1close = servo1open + 0.185;
-        final double servo2close = servo2open + 0.160;
+        final double servo1close = servo1open + 0.215;
+        final double servo2close = servo2open + 0.190;
 
 
         //arm values
