@@ -36,9 +36,6 @@ public class TeleOpMain extends LinearOpMode {
         telemetry.addData("TeleOp: ", "Starting...");
         telemetry.update();
 
-
-
-
         hw.setMotorsToZero();
         while (opModeIsActive()) {
             double drive = -gamepad1.left_stick_y;

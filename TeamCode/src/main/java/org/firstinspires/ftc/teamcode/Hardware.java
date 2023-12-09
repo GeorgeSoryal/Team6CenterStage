@@ -2,10 +2,13 @@ package org.firstinspires.ftc.teamcode;
 
 //import com.google.blocks.ftcrobotcontroller.runtime.CRServoAccess;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+
+import org.firstinspires.ftc.robotcore.external.hardware.camera.Camera;
 
 public class Hardware {
     static final double TICKS_PER_MOTOR_REV = ((((1+((double)46/17))) * (1+((double)46/11))) * 28);
@@ -22,6 +25,7 @@ public class Hardware {
     public DcMotor clawArm = null;
     public Servo clawLeft = null;
     public Servo clawRight = null;
+//    public Camera camera = null;
     private static OpMode opMode;
 
     public Hardware(OpMode opMode1){
@@ -104,7 +108,10 @@ public class Hardware {
             opMode.telemetry.update();
         }
 
-        //arm.init(hardwareMap);
+//        try {
+//            camera = hardwareMap.get(Camera.class, "camera");
+//
+//        }
 
         // Have to test this when the drive train is created
         setMotorsToZero();
