@@ -5,8 +5,8 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 
-@Autonomous(name="Autonomous")
-public class Auto extends LinearOpMode {
+@Autonomous(name="AutoLeftBlue")
+public class AutoLeftBlue extends LinearOpMode {
     static final double TICKS_PER_MOTOR_REV = ((((1+((double)46/17))) * (1+((double)46/11))) * 28);
     static final double DRIVE_GEAR_REDUCTION = 1.0;
     static final double WHEEL_DIAMETER_INCHES = 3.78;
@@ -31,9 +31,7 @@ public class Auto extends LinearOpMode {
 
         drive(0.8, 27.5);
         drive(-0.8, -25.5);
-
-        //turn(-90, 0.7);
-        //drive(-0.8,-15);
+        strafe(-46, -0.8);
         //turn(360, 0.8);
 
         hw.setMotorsToZero();
@@ -82,13 +80,13 @@ public class Auto extends LinearOpMode {
     public void strafe(double distance, double power) {
         //resetEncoders();
         int targetPos = (int) (distance * TICKS_PER_INCH);
-        hw.frontLeft.setTargetPosition(targetPos);
-        hw.frontRight.setTargetPosition(-targetPos);
+        hw.frontLeft.setTargetPosition(-targetPos);
+        hw.frontRight.setTargetPosition(targetPos);
         hw.backLeft.setTargetPosition(targetPos);
         hw.backRight.setTargetPosition(-targetPos);
 
-        hw.frontLeft.setPower(power);
-        hw.frontRight.setPower(-power);
+        hw.frontLeft.setPower(-power);
+        hw.frontRight.setPower(power);
         hw.backLeft.setPower(power);
         hw.backRight.setPower(-power);
 
@@ -96,16 +94,18 @@ public class Auto extends LinearOpMode {
 
         hw.setMotorsToZero();
 
+        resetEncoders();
     }
 
     //positive power -> turn left, negative power -> turn right
     public void turn(double angle, double power){
-        //resetEncoders();
         angle = (angle / 360) * (8 * TICKS_PER_MOTOR_REV); //8 motor revs = 360 degree turn
-        int targetPosition = (int)angle;
+        int targetPosition = hw.frontLeft.getCurrentPosition() + (int)angle;
+        //int negativeTarget = hw.frontLeft.getCurrentPosition() - (int)angle;
         telemetry.addData("turn target: ", targetPosition);
         telemetry.addData("current pos: ", hw.frontLeft.getCurrentPosition());
         telemetry.update();
+
 
         hw.frontLeft.setTargetPosition(targetPosition);
         hw.frontRight.setTargetPosition(-targetPosition);
@@ -123,6 +123,7 @@ public class Auto extends LinearOpMode {
 
         hw.setMotorsToZero();
 
+        resetEncoders();
     }
 
     public void resetEncoders(){

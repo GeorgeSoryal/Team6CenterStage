@@ -1,12 +1,13 @@
 package org.firstinspires.ftc.teamcode;
 
+
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 
-@Autonomous(name="Autonomous")
-public class Auto extends LinearOpMode {
+@Autonomous(name="AutoLeftRed")
+public class AutoLeftRed extends LinearOpMode {
     static final double TICKS_PER_MOTOR_REV = ((((1+((double)46/17))) * (1+((double)46/11))) * 28);
     static final double DRIVE_GEAR_REDUCTION = 1.0;
     static final double WHEEL_DIAMETER_INCHES = 3.78;
@@ -31,10 +32,12 @@ public class Auto extends LinearOpMode {
 
         drive(0.8, 27.5);
         drive(-0.8, -25.5);
-
-        //turn(-90, 0.7);
-        //drive(-0.8,-15);
-        //turn(360, 0.8);
+        drive(0.8,55);
+        turn(-90, 0.7);
+        drive(0.8,45);
+        turn(-90, 0.7);
+        drive(0.8,15);
+        turn(360, 0.8);
 
         hw.setMotorsToZero();
     }
@@ -100,7 +103,7 @@ public class Auto extends LinearOpMode {
 
     //positive power -> turn left, negative power -> turn right
     public void turn(double angle, double power){
-        //resetEncoders();
+        resetEncoders();
         angle = (angle / 360) * (8 * TICKS_PER_MOTOR_REV); //8 motor revs = 360 degree turn
         int targetPosition = (int)angle;
         telemetry.addData("turn target: ", targetPosition);

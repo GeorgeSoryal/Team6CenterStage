@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.Camera;
+import org.firstinspires.ftc.vision.VisionPortal;
 
 public class Hardware {
     static final double TICKS_PER_MOTOR_REV = ((((1+((double)46/17))) * (1+((double)46/11))) * 28);
@@ -25,7 +26,8 @@ public class Hardware {
     public DcMotor clawArm = null;
     public Servo clawLeft = null;
     public Servo clawRight = null;
-//    public Camera camera = null;
+    public VisionPortal visionPortal;
+
     private static OpMode opMode;
 
     public Hardware(OpMode opMode1){
@@ -108,10 +110,13 @@ public class Hardware {
             opMode.telemetry.update();
         }
 
-//        try {
-//            camera = hardwareMap.get(Camera.class, "camera");
-//
-//        }
+        try {
+            visionPortal = new VisionPortal.Builder().build();
+        } catch (Exception e){
+            opMode.telemetry.addData("Camera Error", "ERROR");
+            opMode.telemetry.update();
+        }
+
 
         // Have to test this when the drive train is created
         setMotorsToZero();

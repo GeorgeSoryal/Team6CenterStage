@@ -5,8 +5,8 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 
-@Autonomous(name="Autonomous")
-public class Auto extends LinearOpMode {
+@Autonomous(name="AutoRightBlue")
+public class AutoRightBlue extends LinearOpMode {
     static final double TICKS_PER_MOTOR_REV = ((((1+((double)46/17))) * (1+((double)46/11))) * 28);
     static final double DRIVE_GEAR_REDUCTION = 1.0;
     static final double WHEEL_DIAMETER_INCHES = 3.78;
@@ -30,9 +30,7 @@ public class Auto extends LinearOpMode {
         waitForStart();
 
         drive(0.8, 27.5);
-        drive(-0.8, -25.5);
-
-        //turn(-90, 0.7);
+        turn(-90, 0.7);
         //drive(-0.8,-15);
         //turn(360, 0.8);
 

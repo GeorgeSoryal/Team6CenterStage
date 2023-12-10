@@ -5,8 +5,8 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 
-@Autonomous(name="Autonomous")
-public class Auto extends LinearOpMode {
+@Autonomous(name="AutoRightRed")
+public class AutoRightRed extends LinearOpMode {
     static final double TICKS_PER_MOTOR_REV = ((((1+((double)46/17))) * (1+((double)46/11))) * 28);
     static final double DRIVE_GEAR_REDUCTION = 1.0;
     static final double WHEEL_DIAMETER_INCHES = 3.78;
@@ -31,11 +31,8 @@ public class Auto extends LinearOpMode {
 
         drive(0.8, 27.5);
         drive(-0.8, -25.5);
-
-        //turn(-90, 0.7);
-        //drive(-0.8,-15);
-        //turn(360, 0.8);
-
+        strafe(46, 0.8);
+        //turn(360, 0.8)
         hw.setMotorsToZero();
     }
 
@@ -78,17 +75,17 @@ public class Auto extends LinearOpMode {
 
 
     }
-    // for distance: right is negative, left is positive
+    // for distance: right is positive, left is negative
     public void strafe(double distance, double power) {
         //resetEncoders();
         int targetPos = (int) (distance * TICKS_PER_INCH);
-        hw.frontLeft.setTargetPosition(targetPos);
-        hw.frontRight.setTargetPosition(-targetPos);
+        hw.frontLeft.setTargetPosition(-targetPos);
+        hw.frontRight.setTargetPosition(targetPos);
         hw.backLeft.setTargetPosition(targetPos);
         hw.backRight.setTargetPosition(-targetPos);
 
-        hw.frontLeft.setPower(power);
-        hw.frontRight.setPower(-power);
+        hw.frontLeft.setPower(-power);
+        hw.frontRight.setPower(power);
         hw.backLeft.setPower(power);
         hw.backRight.setPower(-power);
 

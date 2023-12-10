@@ -4,6 +4,8 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
+import org.firstinspires.ftc.vision.VisionProcessor;
+
 
 @Autonomous(name="TestAutoDoNotUse")
 public class AutoTest extends LinearOpMode {
@@ -18,6 +20,10 @@ public class AutoTest extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         hw.init(hardwareMap);
+
+        telemetry.addData("Camera: ", hw.visionPortal);
+//        telemetry.addData("Camera: (fps)", hw.visionPortal.getFps());
+        telemetry.update();
 
         hw.frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         hw.frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
