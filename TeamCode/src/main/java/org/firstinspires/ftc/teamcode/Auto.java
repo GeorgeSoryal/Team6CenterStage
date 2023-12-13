@@ -125,7 +125,7 @@ public class Auto extends LinearOpMode {
                 mode += "blue";
                 count++;
             } else if(gamepad1.b){
-                mode += "red ";
+                mode += "red";
                 count++;
             }
 
