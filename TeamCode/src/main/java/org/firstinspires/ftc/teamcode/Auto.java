@@ -18,53 +18,32 @@ public class Auto extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         hw.init(hardwareMap);
+        resetEncoders();
 
-        hw.frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        hw.frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        hw.backLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        hw.backRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-        telemetry.addData("Auto: ", "ready for start");
-        telemetry.update();
-
+        getAutoMode();
         waitForStart();
-
-        drive(0.8, 27.5);
-        drive(-0.8, -25.5);
-
-        //turn(-90, 0.7);
-        //drive(-0.8,-15);
-        //turn(360, 0.8);
 
         hw.setMotorsToZero();
     }
 
     public void drive(double power, double inches){
-        //resetEncoders();
-        int targetPosition = hw.frontLeft.getCurrentPosition() + (int)(inches * TICKS_PER_INCH);
+        resetEncoders();
+        int targetPosition = (int)(inches * TICKS_PER_INCH);
 
-        telemetry.addData("targetPosition drive: ", targetPosition);
         hw.setAllTargets(targetPosition);
 
         hw.frontLeft.setPower(power);
         hw.frontRight.setPower(power);
         hw.backLeft.setPower(power);
         hw.backRight.setPower(power);
-        while(hw.isNotAtTargetPosition() && opModeIsActive()){
-            telemetry.addData("drive pos: ", hw.frontLeft.getCurrentPosition());
-            telemetry.addData("drive target: ", targetPosition);
-            telemetry.update();
-        }
+        while(hw.isNotAtTargetPosition() && opModeIsActive());
 
         hw.setMotorsToZero();
 
-        telemetry.addData("Linear Drive complete.", "");
-        telemetry.update();
-
     }
     public void drive(double frontLeftPower, double frontRightPower, double backLeftPower, double backRightPower, double inches){
-        //resetEncoders();
-        int targetPosition = hw.frontLeft.getCurrentPosition() + (int)(inches * TICKS_PER_INCH);
+        resetEncoders();
+        int targetPosition = (int)(inches * TICKS_PER_INCH);
 
         hw.setAllTargets(targetPosition);
 
@@ -80,7 +59,7 @@ public class Auto extends LinearOpMode {
     }
     // for distance: right is negative, left is positive
     public void strafe(double distance, double power) {
-        //resetEncoders();
+        resetEncoders();
         int targetPos = (int) (distance * TICKS_PER_INCH);
         hw.frontLeft.setTargetPosition(targetPos);
         hw.frontRight.setTargetPosition(-targetPos);
@@ -100,12 +79,9 @@ public class Auto extends LinearOpMode {
 
     //positive power -> turn left, negative power -> turn right
     public void turn(double angle, double power){
-        //resetEncoders();
+        resetEncoders();
         angle = (angle / 360) * (8 * TICKS_PER_MOTOR_REV); //8 motor revs = 360 degree turn
         int targetPosition = (int)angle;
-        telemetry.addData("turn target: ", targetPosition);
-        telemetry.addData("current pos: ", hw.frontLeft.getCurrentPosition());
-        telemetry.update();
 
         hw.frontLeft.setTargetPosition(targetPosition);
         hw.frontRight.setTargetPosition(-targetPosition);
@@ -131,6 +107,110 @@ public class Auto extends LinearOpMode {
         hw.backRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         hw.backLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
+        hw.frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        hw.frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        hw.backLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        hw.backRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+    }
+
+    //to do: simplify while loops into a method
+    public void getAutoMode(){
+        String mode = "";
+        int count = 0;
+
+        telemetry.addData("enter auto mode: ", "\n - red: B\n - blue: X");
+        telemetry.update();
+        while(count == 0){
+            if (gamepad1.x){
+                mode += "blue";
+                count++;
+            } else if(gamepad1.b){
+                mode += "red ";
+                count++;
+            }
+
+            sleep(25); //memory saver
+        }
+
+        telemetry.addData("L/R: ", "\n - Left: [dpad left]\n - Right: [dpad right]");
+        telemetry.update();
+        while(count == 1){
+            if(gamepad1.dpad_left){
+                mode += " left";
+                count++;
+            } else if(gamepad1.dpad_right){
+                mode += " right";
+                count++;
+            }
+        }
+
+        telemetry.addData("parking: ", "\n - Left: [dpad left]\n - Right: [dpad right]");
+        telemetry.update();
+        String parking = "";
+        while(count == 2) {
+            if (gamepad1.dpad_left) {
+                parking = "left";
+                count++;
+            } else if (gamepad1.dpad_right) {
+                parking = "right";
+                count++;
+            }
+        }
+
+        switch (mode){
+            case "blue left":
+                autoLB(parking);
+                break;
+
+            case "blue right":
+                autoRB(parking);
+                break;
+
+            case "red left":
+                autoLR(parking);
+                break;
+
+            case "red right":
+                autoRR(parking);
+                break;
+
+            default:
+                telemetry.addData("ERROR: ", "MODE NOT FOUND");
+                telemetry.update();
+                defaultAuto();
+                break;
+        }
+    }
+
+    public void defaultAuto(){
+        drive(0.8, 27.5);
+        drive(-0.8, -25.5);
+    }
+
+    public void autoLB(String parking){
+        drive(0.8, 27.5);
+        drive(-0.8, -25.5);
+        strafe(-46, -0.8);
+    }
+
+    public void autoRB(String parking){
+        drive(0.8, 27.5);
+        drive(-0.8, -25);
+        turn(90, 0.8);
+        drive(0.8, 50);
+    }
+
+    public void autoLR(String parking){
+        drive(0.8, 27.5);
+        drive(-0.8, -25);
+        turn(-90, -0.8);
+        drive(0.8, 50);
+    }
+
+    public void autoRR(String parking){
+        drive(0.8, 27.5);
+        drive(-0.8, -25.5);
+        strafe(46, 0.8);
     }
 
 }
