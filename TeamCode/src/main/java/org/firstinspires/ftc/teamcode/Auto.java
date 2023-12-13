@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
+import android.util.Pair;
+
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -20,8 +22,34 @@ public class Auto extends LinearOpMode {
         hw.init(hardwareMap);
         resetEncoders();
 
-        getAutoMode();
+        Pair<String, String> autoMode = getAutoMode();
+
         waitForStart();
+
+        String parking = autoMode.second;
+        switch (autoMode.first){
+            case "blueLeft":
+                autoLB(parking);
+                break;
+
+            case "blueRight":
+                autoRB(parking);
+                break;
+
+            case "redLeft":
+                autoLR(parking);
+                break;
+
+            case "redRight":
+                autoRR(parking);
+                break;
+
+            default:
+                telemetry.addData("ERROR: ", "MODE NOT FOUND");
+                telemetry.update();
+                defaultAuto();
+                break;
+        }
 
         hw.setMotorsToZero();
     }
@@ -113,8 +141,12 @@ public class Auto extends LinearOpMode {
         hw.backRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
     }
 
-    //to do: simplify while loops into a method
-    public void getAutoMode(){
+    //TODO: simplify while loops into a method
+    //TODO: Fix all autoXx methods
+    /**
+     * @return Pair: first = mode, second = parking
+     * **/
+    public Pair<String, String> getAutoMode(){
         String mode = "";
         int count = 0;
 
@@ -136,10 +168,10 @@ public class Auto extends LinearOpMode {
         telemetry.update();
         while(count == 1){
             if(gamepad1.dpad_left){
-                mode += " left";
+                mode += "Left";
                 count++;
             } else if(gamepad1.dpad_right){
-                mode += " right";
+                mode += "Right";
                 count++;
             }
         }
@@ -157,29 +189,7 @@ public class Auto extends LinearOpMode {
             }
         }
 
-        switch (mode){
-            case "blue left":
-                autoLB(parking);
-                break;
-
-            case "blue right":
-                autoRB(parking);
-                break;
-
-            case "red left":
-                autoLR(parking);
-                break;
-
-            case "red right":
-                autoRR(parking);
-                break;
-
-            default:
-                telemetry.addData("ERROR: ", "MODE NOT FOUND");
-                telemetry.update();
-                defaultAuto();
-                break;
-        }
+        return new Pair<String, String>(mode, parking);
     }
 
     public void defaultAuto(){
