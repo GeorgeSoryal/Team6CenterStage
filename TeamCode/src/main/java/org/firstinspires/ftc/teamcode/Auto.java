@@ -141,8 +141,6 @@ public class Auto extends LinearOpMode {
         hw.backRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
     }
 
-    //TODO: simplify while loops into a method
-    //TODO: Fix all autoXx methods
     /**
      * @return Pair: first = mode, second = parking
      * **/
@@ -150,46 +148,31 @@ public class Auto extends LinearOpMode {
         String mode = "";
         int count = 0;
 
-        telemetry.addData("enter auto mode: ", "\n - red: B\n - blue: X");
+        telemetry.addData("enter auto mode: ", "\n - blue [dpad left]\n - red: [dpad right]");
         telemetry.update();
-        while(count == 0){
-            if (gamepad1.x){
-                mode += "blue";
-                count++;
-            } else if(gamepad1.b){
-                mode += "red";
-                count++;
-            }
-
-            sleep(25); //memory saver
-        }
+        mode += getInput("blue", "right");
 
         telemetry.addData("L/R: ", "\n - Left: [dpad left]\n - Right: [dpad right]");
         telemetry.update();
-        while(count == 1){
-            if(gamepad1.dpad_left){
-                mode += "Left";
-                count++;
-            } else if(gamepad1.dpad_right){
-                mode += "Right";
-                count++;
-            }
-        }
+        mode += getInput("Left", "Right");
 
         telemetry.addData("parking: ", "\n - Left: [dpad left]\n - Right: [dpad right]");
         telemetry.update();
-        String parking = "";
-        while(count == 2) {
-            if (gamepad1.dpad_left) {
-                parking = "left";
-                count++;
-            } else if (gamepad1.dpad_right) {
-                parking = "right";
-                count++;
-            }
-        }
+        String parking = getInput("left", "right");
+
 
         return new Pair<String, String>(mode, parking);
+    }
+
+    public String getInput(String mode1, String mode2){
+        while(true) {
+            if (gamepad1.dpad_left) {
+                return mode1;
+            } else if (gamepad1.dpad_right) {
+                return mode2;
+            }
+            sleep(30);
+        }
     }
 
     public void defaultAuto(){
@@ -198,29 +181,49 @@ public class Auto extends LinearOpMode {
     }
 
     public void autoLB(String parking){
-        drive(0.8, 27.5);
-        drive(-0.8, -25.5);
-        strafe(-46, -0.8);
+        if(parking.equals("right")){
+            drive(0.8, 45);
+            strafe(-46, -0.8);
+        } else {
+            drive(0.8, 27.5);
+            drive(-0.8, -25.5);
+            strafe(-46, -0.8);
+        }
+
     }
 
     public void autoRB(String parking){
-        drive(0.8, 27.5);
-        drive(-0.8, -25);
-        turn(90, 0.8);
-        drive(0.8, 50);
+        if(parking.equals("right")){
+
+        } else {
+            drive(0.8, 27.5);
+            drive(-0.8, -25);
+            turn(90, 0.8);
+            drive(0.8, 50);
+        }
+
     }
 
     public void autoLR(String parking){
-        drive(0.8, 27.5);
-        drive(-0.8, -25);
-        turn(-90, -0.8);
-        drive(0.8, 50);
+        if(parking.equals("right")){
+            drive(0.8, 27.5);
+            drive(-0.8, -25);
+            turn(-90, -0.8);
+            drive(0.8, 50);
+        } else {
+            //wgger
+        }
+
     }
 
     public void autoRR(String parking){
-        drive(0.8, 27.5);
-        drive(-0.8, -25.5);
-        strafe(46, 0.8);
+        if(parking.equals("right")){
+            drive(0.8, 27.5);
+            drive(-0.8, -25.5);
+            strafe(46, 0.8);
+        } else{
+
+        }
     }
 
 }
