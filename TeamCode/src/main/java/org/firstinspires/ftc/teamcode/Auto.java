@@ -2,9 +2,13 @@ package org.firstinspires.ftc.teamcode;
 
 import android.util.Pair;
 
+import androidx.annotation.NonNull;
+
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+
+import javax.security.auth.login.LoginException;
 
 
 @Autonomous(name="Autonomous")
@@ -37,38 +41,64 @@ public class Auto extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         hw.init(hardwareMap);
+        hw.setMotorsToZero();
+        // TODO Make servo clamp down here
+        hw.clawArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        hw.clawArm.setTargetPosition(0);
+        hw.clawArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         resetEncoders();
 
-        Pair<ParkingMode, ParkingDirection> autoMode = getAutoMode();
+        Pair<ParkingMode, ParkingDirection> autoMode;
+        try {
+            autoMode = getAutoMode();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        hw.clawArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        hw.clawArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        hw.clawArm.setTargetPosition(-1640);
+        hw.clawArm.setPower(-DEFAULT_POWER);
+        while (hw.clawArm.getCurrentPosition() > -1640);
+        hw.clawArm.setPower(0);
+
 
         waitForStart();
 
+        hw.clawArm.setTargetPosition(0);
+        hw.clawArm.setPower(DEFAULT_POWER);
+        while (hw.clawArm.getCurrentPosition() < 0);
+        hw.clawArm.setPower(DEFAULT_POWER);
+
         ParkingDirection parking = autoMode.second;
-        switch (autoMode.first) {
-            case BlueLeft:
-                autoLB(parking);
-                break;
+        boolean hasRun = false;
+        while(opModeIsActive() && !hasRun) {
+            hasRun = true;
+            switch (autoMode.first) {
+                case BlueLeft:
+                    autoLB(parking);
+                    break;
 
-            case BlueRight:
-                autoRB(parking);
-                break;
+                case BlueRight:
+                    autoRB(parking);
+                    break;
 
-            case RedLeft:
-                autoLR(parking);
-                break;
+                case RedLeft:
+                    autoLR(parking);
+                    break;
 
-            case RedRight:
-                autoRR(parking);
-                break;
+                case RedRight:
+                    autoRR(parking);
+                    break;
 
-            default:
-                telemetry.addData("ERROR: ", "MODE NOT FOUND");
-                telemetry.update();
-                defaultAutoBackToWall();
-                break;
+                default:
+                    telemetry.addData("ERROR: ", "MODE NOT FOUND");
+                    telemetry.update();
+                    defaultAutoBackToWall();
+                    break;
+            }
         }
-
-        hw.setMotorsToZero();
     }
 
     public void drive(double inches, double power) {
@@ -110,13 +140,13 @@ public class Auto extends LinearOpMode {
         int targetPos = (int) (distance * TICKS_PER_INCH);
         hw.frontLeft.setTargetPosition(targetPos);
         hw.frontRight.setTargetPosition(-targetPos);
-        hw.backLeft.setTargetPosition(targetPos);
-        hw.backRight.setTargetPosition(-targetPos);
+        hw.backLeft.setTargetPosition(-targetPos);
+        hw.backRight.setTargetPosition(targetPos);
 
         hw.frontLeft.setPower(power);
         hw.frontRight.setPower(-power);
-        hw.backLeft.setPower(power);
-        hw.backRight.setPower(-power);
+        hw.backLeft.setPower(-power);
+        hw.backRight.setPower(power);
 
         while (hw.isNotAtTargetPosition() && opModeIsActive()) ;
 
@@ -163,7 +193,9 @@ public class Auto extends LinearOpMode {
     /**
      * @return Pair: first = mode, second = parking
      **/
-    public Pair<ParkingMode, ParkingDirection> getAutoMode() {
+    public Pair<ParkingMode, ParkingDirection> getAutoMode() throws Exception {
+        hw.clawArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
         String mode = "";
         int count = 0;
 
@@ -180,26 +212,47 @@ public class Auto extends LinearOpMode {
         telemetry.update();
         ParkingDirection parking = getInput(ParkingDirection.left, ParkingDirection.right);
 
+        telemetry.addData("Set ", "to go");
+        telemetry.update();
+
 
         return new Pair<ParkingMode, ParkingDirection>(parkingMode, parking);
     }
 
     // any type T
-    public <T> T getInput(T mode1, T mode2) {
-        while (true) {
+    public <T> T getInput(T mode1, T mode2) throws Exception {
+        while (opModeInInit()) {
             if (gamepad1.dpad_left) {
+                sleep(500);
                 return mode1;
             } else if (gamepad1.dpad_right) {
+                sleep(500);
                 return mode2;
             }
             sleep(30);
         }
+        throw new Exception();
     }
 
     public void defaultAutoBackToWall() {
         drive(DISTANCE_TO_SPIKE_MARK, DEFAULT_POWER);
         double DISTANCE_BACK_TO_WALL = 25.5;
         drive(-DISTANCE_BACK_TO_WALL, -DEFAULT_POWER);
+    }
+
+    public void moveArm(double targetPosition, double power){
+        hw.clawArm.setTargetPosition((int)targetPosition);
+
+
+        if(targetPosition > hw.clawArm.getCurrentPosition()){
+            hw.clawArm.setPower(power);
+            while(hw.clawArm.getCurrentPosition() < targetPosition && opModeIsActive());
+        } else {
+            hw.clawArm.setPower(-power);
+            while(hw.clawArm.getCurrentPosition() > targetPosition && opModeIsActive());
+        }
+
+        hw.clawArm.setPower(0);
     }
 
     public void autoLB(ParkingDirection parking) {
@@ -230,14 +283,22 @@ public class Auto extends LinearOpMode {
     }
 
     public void autoLR(ParkingDirection parking) {
+        // DONE
         switch (parking) {
             case right:
-                defaultAutoBackToWall();
-                turn(-90, -DEFAULT_POWER);
-                drive(50, DEFAULT_POWER);
+                drive(DISTANCE_TO_SPIKE_MARK, DEFAULT_POWER);
+                drive(-25, -DEFAULT_POWER);
+                moveArm(0, DEFAULT_POWER);
+                turn(-90, DEFAULT_POWER);
+                drive(80, DEFAULT_POWER);
                 break;
             case left:
-                //TODO
+                drive(DISTANCE_TO_SPIKE_MARK, DEFAULT_POWER);
+                drive(-7, -DEFAULT_POWER);
+                strafe(18, DEFAULT_POWER);
+                drive(35.5, DEFAULT_POWER);
+                strafe(-130, -DEFAULT_POWER);
+                drive(-12, -DEFAULT_POWER);
                 break;
         }
     }
@@ -246,10 +307,14 @@ public class Auto extends LinearOpMode {
         switch (parking) {
             case right:
                 defaultAutoBackToWall();
-                strafe(46, DEFAULT_POWER);
+                strafe(-46, -DEFAULT_POWER);
                 break;
             case left:
-                //TODO
+                drive(DISTANCE_TO_SPIKE_MARK, DEFAULT_POWER);
+                drive(-7, -DEFAULT_POWER);
+                strafe(-18, DEFAULT_POWER);
+                drive(29, DEFAULT_POWER);
+                strafe(-30, -DEFAULT_POWER);
                 break;
 
         }

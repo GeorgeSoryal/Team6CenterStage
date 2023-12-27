@@ -13,6 +13,7 @@ public class AutoTest extends LinearOpMode {
     static final double DRIVE_GEAR_REDUCTION = 1.0;
     static final double WHEEL_DIAMETER_INCHES = 3.78;
     static final double TICKS_PER_INCH = (TICKS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) / (WHEEL_DIAMETER_INCHES * 3.1415);
+    private final double DEFAULT_POWER = 0.8;
     //final private double DRIVE_SPEED = 0.6;
     Hardware hw = new Hardware(this);
 
@@ -33,11 +34,23 @@ public class AutoTest extends LinearOpMode {
         telemetry.addData("Auto: ", "ready for start");
         telemetry.update();
 
+        hw.clawArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        hw.clawArm.setTargetPosition(0);
+        hw.clawArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        hw.clawArm.setTargetPosition(-1670);
+        hw.clawArm.setPower(-DEFAULT_POWER);
+        while (hw.clawArm.getCurrentPosition() > -1640);
+        hw.clawArm.setPower(0);
+
         waitForStart();
 
-        drive(0.8, 26.5);
-        drive(-0.8,-15);
-        turn(360, 0.8);
+        hw.clawArm.setTargetPosition(0);
+        hw.clawArm.setPower(DEFAULT_POWER);
+        while (hw.clawArm.getCurrentPosition() < 0);
+        hw.clawArm.setPower(DEFAULT_POWER);
+        hw.clawArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        moveArm(900, 0.8);
 
         hw.setMotorsToZero();
     }
@@ -126,6 +139,24 @@ public class AutoTest extends LinearOpMode {
         hw.setMotorsToZero();
 
     }
+
+    public void moveArm(double targetPosition, double power){
+        hw.clawArm.setTargetPosition((int)targetPosition);
+
+
+        if(targetPosition > hw.clawArm.getCurrentPosition()){
+            hw.clawArm.setPower(power);
+            while(hw.clawArm.getCurrentPosition() < targetPosition && opModeIsActive()){
+                telemetry.addData("arm: (power, position) ", hw.clawArm.getPower() + " " + hw.clawArm.getCurrentPosition());
+            }
+        } else {
+            hw.clawArm.setPower(-power);
+            while(hw.clawArm.getCurrentPosition() > targetPosition && opModeIsActive());
+        }
+
+        hw.clawArm.setPower(0);
+    }
+
 
     public void resetEncoders(){
         hw.frontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);

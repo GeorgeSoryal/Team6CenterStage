@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
 
 
 @TeleOp(name="TeleOp")
@@ -28,10 +29,12 @@ public class TeleOpMain extends LinearOpMode {
         final double armDown = 0;
         final double armUp = -900;
 
+        telemetry.addData("Arm position", hw.clawArm.getCurrentPosition());
         telemetry.addData("TeleOp: ", "Ready for start, Initialized");
         telemetry.update();
 
         waitForStart();
+
 
         telemetry.addData("TeleOp: ", "Starting...");
         telemetry.update();
@@ -74,7 +77,24 @@ public class TeleOpMain extends LinearOpMode {
                 hw.clawArm.setPower(gamepad2.left_stick_y);
             }
 
+            if(gamepad1.right_bumper){
+                hw.clawArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                hw.clawArm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            }
+
+//            if(gamepad1.right_trigger > 0.5){
+//                if(hw.clawArm.getCurrentPosition() < 0){
+//                    hw.clawArm.setPower(0.8);
+//                    while(hw.clawArm.getCurrentPosition() < 0);
+//                } else {
+//                    hw.clawArm.setPower(-0.8);
+//                    while(hw.clawArm.getCurrentPosition() > 0);
+//                }
+//            }
+
             hw.telemetryHardware();
+            telemetry.addData("\nArm position", hw.clawArm.getCurrentPosition());
+
             telemetry.update();
             //cycle every 10 milliseconds, to prevent memory death --> 100 cycles/s
             sleep(10);
