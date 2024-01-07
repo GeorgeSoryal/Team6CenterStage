@@ -22,7 +22,7 @@ public class AutoTest extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         hw.init(hardwareMap);
 
-        telemetry.addData("Camera: ", hw.visionPortal);
+//        telemetry.addData("Camera: ", hw.visionPortal);
 //        telemetry.addData("Camera: (fps)", hw.visionPortal.getFps());
         telemetry.update();
 

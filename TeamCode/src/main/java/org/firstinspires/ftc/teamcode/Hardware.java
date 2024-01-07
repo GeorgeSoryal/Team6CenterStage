@@ -1,15 +1,20 @@
 package org.firstinspires.ftc.teamcode;
 
 //import com.google.blocks.ftcrobotcontroller.runtime.CRServoAccess;
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.Camera;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.vision.VisionProcessor;
 
 public class Hardware {
     static final double TICKS_PER_MOTOR_REV = ((((1+((double)46/17))) * (1+((double)46/11))) * 28);
@@ -26,7 +31,9 @@ public class Hardware {
     public DcMotor clawArm = null;
     public Servo clawLeft = null;
     public Servo clawRight = null;
-    public VisionPortal visionPortal;
+    public VisionProcessor visionProcessor;
+//    public AprilTag
+    public IMU gyro;
 
     private static OpMode opMode;
 
@@ -94,7 +101,7 @@ public class Hardware {
         }
 
         try { //claw servo 1
-            clawLeft = hardwareMap.servo.get("claw1"); // port 0
+            clawLeft = hardwareMap.get(Servo.class, "claw1"); // port 0
         } catch (Exception e){
             opMode.telemetry.addData("clawLeft: ", "Error");
         } finally {
@@ -102,7 +109,7 @@ public class Hardware {
         }
 
         try { //claw servo 2
-            clawRight = hardwareMap.servo.get("claw2"); // port 1, on the right relative to the arm side
+            clawRight = hardwareMap.get(Servo.class, "claw2"); // port 1, on the right relative to the arm side
             clawRight.setDirection(Servo.Direction.REVERSE);
         } catch (Exception e){
             opMode.telemetry.addData("clawRight: ", "Error");
@@ -111,11 +118,24 @@ public class Hardware {
         }
 
         try {
-            visionPortal = new VisionPortal.Builder().build();
+            gyro = hardwareMap.get(IMU.class, "imu");
+            // might be backwards
+            gyro.initialize(new IMU.Parameters(new RevHubOrientationOnRobot(
+                    RevHubOrientationOnRobot.LogoFacingDirection.FORWARD, RevHubOrientationOnRobot.UsbFacingDirection.UP)));
+            gyro.resetYaw();
+        }
+        catch(Exception e){
+            opMode.telemetry.addData("Gyro: ", "ERROR");
+            opMode.telemetry.update();
+        }
+
+        try {
+//            visionPortal = new VisionPortal.Builder().build();
         } catch (Exception e){
             opMode.telemetry.addData("Camera Error", "ERROR");
             opMode.telemetry.update();
         }
+
 
 
         // Have to test this when the drive train is created
@@ -128,6 +148,7 @@ public class Hardware {
         opMode.telemetry.addData("Hardware Init: ", "Success.");
         opMode.telemetry.update();
     }
+
 
     public void setMotorsToZero(){
         frontLeft.setPower(0);
@@ -145,15 +166,19 @@ public class Hardware {
         opMode.telemetry.addData("clawRight position: ", clawRight.getPosition());
         opMode.telemetry.addData("\nclawArm position: ", clawArm.getCurrentPosition());
         opMode.telemetry.addData("clawArm target: ", clawArm.getTargetPosition());
+
+        opMode.telemetry.addData("\n Gyro angle: ", getGyroAngle()+180.0);
+        opMode.telemetry.update();
     }
+
+    public double getGyroAngle(){
+        return gyro.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
+    }
+
     public boolean isNotAtTargetPosition(){
         double currentPos = frontLeft.getCurrentPosition();
         double targetPos = frontLeft.getTargetPosition();
-        if(currentPos >= targetPos){
-            return currentPos > targetPos;
-        } else {
-            return currentPos < targetPos;
-        }
+        return !(currentPos >= targetPos);
     }
 
     public void setAllTargets(int targetPosition){

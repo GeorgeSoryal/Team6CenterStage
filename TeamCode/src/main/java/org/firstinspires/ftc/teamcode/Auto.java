@@ -2,13 +2,9 @@ package org.firstinspires.ftc.teamcode;
 
 import android.util.Pair;
 
-import androidx.annotation.NonNull;
-
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-
-import javax.security.auth.login.LoginException;
 
 
 @Autonomous(name="Autonomous")
@@ -23,6 +19,7 @@ public class Auto extends LinearOpMode {
     // never be used as a positive
     final private double DISTANCE_TO_SPIKE_MARK = 27.5;
     Hardware hw = new Hardware(this);
+
 
     // left or right in the parking area from the robots perspective 
     private enum ParkingDirection {
@@ -42,6 +39,7 @@ public class Auto extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         hw.init(hardwareMap);
         hw.setMotorsToZero();
+        hw.gyro.resetYaw();
         // TODO Make servo clamp down here
         hw.clawArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         hw.clawArm.setTargetPosition(0);
@@ -104,18 +102,21 @@ public class Auto extends LinearOpMode {
     public void drive(double inches, double power) {
         resetEncoders();
         int targetPosition = (int) (inches * TICKS_PER_INCH);
-
         hw.setAllTargets(targetPosition);
 
         hw.frontLeft.setPower(power);
         hw.frontRight.setPower(power);
         hw.backLeft.setPower(power);
         hw.backRight.setPower(power);
-        while (hw.isNotAtTargetPosition() && opModeIsActive()) ;
+        while (hw.isNotAtTargetPosition() && opModeIsActive()){
+            telemetry.addData("Driving: ", "Telemetry");
+            hw.telemetryHardware();
+        }
 
         hw.setMotorsToZero();
 
     }
+
 
     public void drive(double frontLeftPower, double frontRightPower, double backLeftPower, double backRightPower, double inches) {
         resetEncoders();
@@ -155,7 +156,7 @@ public class Auto extends LinearOpMode {
     }
 
     //positive power -> turn left, negative power -> turn right
-    public void turn(double angle, double power) {
+    public void turnByEncoder(double angle, double power) {
         resetEncoders();
         angle = (angle / 360) * (8 * TICKS_PER_MOTOR_REV); //8 motor revs = 360 degree turn
         int targetPosition = (int) angle;
@@ -178,6 +179,45 @@ public class Auto extends LinearOpMode {
 
     }
 
+    /**
+     * @param angle from -180 to 180 degrees
+     */
+    private void turnByGyro(double angle, double power){
+        // this will always the same way
+        int turnDirection = angle > 0 ? -1 : 1;
+        angle = Math.abs(angle);
+        double headingError;
+
+        resetEncoders();
+        hw.frontLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        hw.frontRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        hw.backLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        hw.backRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+        while (opModeIsActive() && Math.abs(hw.getGyroAngle()) < angle) {
+            telemetry.addData("GyroTurning: ", "Telemetry");
+
+            // Determine the heading current error
+            headingError = angle - hw.getGyroAngle();
+            telemetry.addData("Heading Error: ", headingError);
+            
+            // turnDirection instead of -1
+            double rightWheelsPower = -turnDirection * (headingError);
+            double leftWheelsPower = turnDirection * (headingError);
+
+            hw.frontLeft.setPower(leftWheelsPower);
+            hw.frontRight.setPower(rightWheelsPower);
+            hw.backLeft.setPower(leftWheelsPower);
+            hw.backRight.setPower(rightWheelsPower);
+
+
+            hw.telemetryHardware();
+        }
+
+        hw.setMotorsToZero();
+        resetEncoders(); // Test
+    }
+
     public void resetEncoders() {
         hw.frontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         hw.frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -197,7 +237,6 @@ public class Auto extends LinearOpMode {
         hw.clawArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
         String mode = "";
-        int count = 0;
 
         telemetry.addData("enter auto mode: ", "\n - blue [dpad left]\n - red: [dpad right]");
         telemetry.update();
@@ -231,7 +270,7 @@ public class Auto extends LinearOpMode {
             }
             sleep(30);
         }
-        throw new Exception();
+        throw new Exception("Op Mode not meant to be init or this is not meant to be running.");
     }
 
     public void defaultAutoBackToWall() {
@@ -270,13 +309,19 @@ public class Auto extends LinearOpMode {
     public void autoRB(ParkingDirection parking) {
         switch (parking) {
             case right:
-                // TODO
+                drive(DISTANCE_TO_SPIKE_MARK, DEFAULT_POWER);
+                drive(-25, -DEFAULT_POWER);
+                moveArm(0, DEFAULT_POWER);
+                turnByGyro(90, DEFAULT_POWER);
+                drive(80, DEFAULT_POWER);
                 break;
             case left:
                 drive(DISTANCE_TO_SPIKE_MARK, DEFAULT_POWER);
-                drive(-25, -DEFAULT_POWER);
-                turn(90, DEFAULT_POWER);
-                drive(50, DEFAULT_POWER);
+                drive(-7, -DEFAULT_POWER);
+                strafe(18, DEFAULT_POWER);
+                drive(35.5, DEFAULT_POWER);
+                strafe(-130, -DEFAULT_POWER);
+                drive(-12, -DEFAULT_POWER);
                 break;
 
         }
@@ -289,7 +334,7 @@ public class Auto extends LinearOpMode {
                 drive(DISTANCE_TO_SPIKE_MARK, DEFAULT_POWER);
                 drive(-25, -DEFAULT_POWER);
                 moveArm(0, DEFAULT_POWER);
-                turn(-90, DEFAULT_POWER);
+                turnByGyro(-90, DEFAULT_POWER);
                 drive(80, DEFAULT_POWER);
                 break;
             case left:
