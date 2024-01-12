@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.ServoController;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.Camera;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -102,6 +103,8 @@ public class Hardware {
 
         try { //claw servo 1
             clawLeft = hardwareMap.get(Servo.class, "claw1"); // port 0
+            clawLeft.getController().pwmEnable();
+
         } catch (Exception e){
             opMode.telemetry.addData("clawLeft: ", "Error");
         } finally {
@@ -111,6 +114,8 @@ public class Hardware {
         try { //claw servo 2
             clawRight = hardwareMap.get(Servo.class, "claw2"); // port 1, on the right relative to the arm side
             clawRight.setDirection(Servo.Direction.REVERSE);
+            clawLeft.getController().pwmEnable();
+
         } catch (Exception e){
             opMode.telemetry.addData("clawRight: ", "Error");
         } finally {
