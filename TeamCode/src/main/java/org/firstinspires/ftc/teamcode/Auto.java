@@ -20,7 +20,7 @@ public class Auto extends LinearOpMode {
     static final double WHEEL_DIAMETER_INCHES = 3.78;
     static final double TICKS_PER_INCH = (TICKS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) / (WHEEL_DIAMETER_INCHES * 3.1415);
     //final private double DRIVE_SPEED = 0.6;
-    final private double DEFAULT_POWER = 0.8;
+    final private double DEFAULT_POWER = 0.9;
     // always absolute values since its distances and its less confusing for me even though DISTANCE_BACK_TO_WALL will
     // never be used as a positive
     final private double DISTANCE_TO_SPIKE_MARK = 27.5;
@@ -78,6 +78,7 @@ public class Auto extends LinearOpMode {
         while (hw.clawArm.getCurrentPosition() < 0);
         hw.clawArm.setPower(DEFAULT_POWER);
 
+        drive(DISTANCE_TO_SPIKE_MARK, DEFAULT_POWER);
         ParkingDirection parking = autoMode.second;
         boolean hasRun = false;
         while(opModeIsActive() && !hasRun) {
@@ -207,6 +208,7 @@ public class Auto extends LinearOpMode {
             telemetry.addData("GyroTurning: ", "Telemetry");
 
             // Determine the heading current error
+            // Course correction
             headingError = angle - hw.getGyroAngle();
             headingError = headingError < 0 ? -headingError : headingError;
             telemetry.addData("Heading Error: ", headingError);
@@ -297,15 +299,12 @@ public class Auto extends LinearOpMode {
     }
 
     public void defaultAutoBackToWall() {
-        drive(DISTANCE_TO_SPIKE_MARK, DEFAULT_POWER);
-        double DISTANCE_BACK_TO_WALL = 25.5;
+        final double DISTANCE_BACK_TO_WALL = 25.5;
         drive(-DISTANCE_BACK_TO_WALL, -DEFAULT_POWER);
     }
 
     public void moveArm(double targetPosition, double power){
         hw.clawArm.setTargetPosition((int)targetPosition);
-
-
         if(targetPosition > hw.clawArm.getCurrentPosition()){
             hw.clawArm.setPower(power);
             while(hw.clawArm.getCurrentPosition() < targetPosition && opModeIsActive());
@@ -321,8 +320,9 @@ public class Auto extends LinearOpMode {
         switch (parking) {
             case right: //done parking
                 // forward then strafe
-                drive(45, DEFAULT_POWER);
+                drive(45 - DISTANCE_TO_SPIKE_MARK, DEFAULT_POWER);
                 drive(-7, -DEFAULT_POWER);
+                moveArm(0, DEFAULT_POWER);
                 strafe(-18, -DEFAULT_POWER);
                 drive(28, DEFAULT_POWER);
                 strafe(-28, -DEFAULT_POWER);
@@ -350,7 +350,6 @@ public class Auto extends LinearOpMode {
                 turnByGyro(90, DEFAULT_POWER);
                 drive(80, DEFAULT_POWER);
                 break;
-
         }
     }
 

@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode;
 
-//import com.google.blocks.ftcrobotcontroller.runtime.CRServoAccess;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -9,6 +8,11 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.robotcore.external.android.util.Size;
+import org.firstinspires.ftc.robotcore.external.function.Continuation;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.Camera;
+
+import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraCaptureRequest;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.vision.VisionProcessor;
 
@@ -31,8 +35,8 @@ public class Hardware {
     public VisionProcessor visionProcessor;
     //arm servo values (servo1 = claw left) (servo2 = claw right)
     //open
-    public final double SERVO_1_OPEN_POSITION = 0.97 - 0.11;
-    public final double SERVO_2_OPEN_POSITION = 0.97 - 0.182; //claw2 = more movement
+    public final double SERVO_1_OPEN_POSITION = 1.27 - 0.11;
+    public final double SERVO_2_OPEN_POSITION = 1.27 - 0.182; //claw2 = more movement
     //close
     public final double SERVO_1_CLOSED_POSITION =  0.94 - (0.13 + 0.215);
     public final double SERVO_2_CLOSED_POSITION = 0.94- (0.18 + 0.190);
@@ -139,6 +143,12 @@ public class Hardware {
         } catch (Exception e){
             opMode.telemetry.addData("Camera Error", "ERROR");
             opMode.telemetry.update();
+        }
+        try{
+            Camera camera = hardwareMap.get(Camera.class, "camera1");
+            CameraCaptureRequest cameraCaptureRequest = camera.createCaptureRequest(0, new Size(640, 360), 5);
+        } catch(Exception e){
+            opMode.telemetry.addData("CAMERA: ", "ERROR");
         }
 
 
