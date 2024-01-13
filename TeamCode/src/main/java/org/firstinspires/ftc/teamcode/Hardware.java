@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
+//import com.google.blocks.ftcrobotcontroller.runtime.CRServoAccess;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -8,13 +9,13 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.robotcore.external.android.util.Size;
-import org.firstinspires.ftc.robotcore.external.function.Continuation;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.Camera;
-
-import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraCaptureRequest;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.vision.VisionProcessor;
+import org.openftc.easyopencv.OpenCvCamera;
+import org.openftc.easyopencv.OpenCvCameraFactory;
+import org.openftc.easyopencv.OpenCvCameraRotation;
+import org.openftc.easyopencv.OpenCvInternalCamera;
 
 public class Hardware {
     static final double TICKS_PER_MOTOR_REV = ((((1+((double)46/17))) * (1+((double)46/11))) * 28);
@@ -33,13 +34,18 @@ public class Hardware {
     public Servo clawLeft = null;
     public Servo clawRight = null;
     public VisionProcessor visionProcessor;
-    //arm servo values (servo1 = claw left) (servo2 = claw right)
+    OpenCvCamera camera = null;
+    int cameraMonitorViewId = 0;
+    WebcamName webcamName = null;
+
+    //arm servo values (servo1 = claw right) (servo2 = claw left)
     //open
-    public final double SERVO_1_OPEN_POSITION = 1.27 - 0.11;
-    public final double SERVO_2_OPEN_POSITION = 1.27 - 0.182; //claw2 = more movement
+    // public final double SERVO_OFFSET = 0.25;
+    public final double SERVO_1_OPEN_POSITION = 0.417;//0.317; //+ SERVO_OFFSET;//0.97 - 0.11 - 0.12 - 0.07;
+    public final double SERVO_2_OPEN_POSITION = 0.465;//0.565; //0.97 - 0.182 +0.05; //claw2 = more movement
     //close
-    public final double SERVO_1_CLOSED_POSITION =  0.94 - (0.13 + 0.215);
-    public final double SERVO_2_CLOSED_POSITION = 0.94- (0.18 + 0.190);
+    public final double SERVO_1_CLOSED_POSITION =  0.718;//0.88; //+ SERVO_OFFSET;//SERVO_1_OPEN_POSITION - 0.2;//0.94 - (0.13 + 0.215) - 0.15;
+    public final double SERVO_2_CLOSED_POSITION = 0.73;//0.275; //SERVO_2_OPEN_POSITION - 0.2;//0.94- (0.18 + 0.190) ;
 //    public AprilTag
     public IMU gyro;
 
@@ -109,6 +115,7 @@ public class Hardware {
 
         try { //claw servo 1
             clawLeft = hardwareMap.get(Servo.class, "claw1"); // port 0
+            clawLeft.setPosition(0.4);
         } catch (Exception e){
             opMode.telemetry.addData("clawLeft: ", "Error");
         } finally {
@@ -119,6 +126,7 @@ public class Hardware {
             clawRight = hardwareMap.get(Servo.class, "claw2"); // port 1, on the right relative to the arm side
             clawRight.setDirection(Servo.Direction.REVERSE);
             clawLeft.getController().pwmEnable();
+            clawRight.setPosition(0.4);
 
         } catch (Exception e){
             opMode.telemetry.addData("clawRight: ", "Error");
@@ -144,14 +152,14 @@ public class Hardware {
             opMode.telemetry.addData("Camera Error", "ERROR");
             opMode.telemetry.update();
         }
-        try{
-            Camera camera = hardwareMap.get(Camera.class, "camera1");
-            CameraCaptureRequest cameraCaptureRequest = camera.createCaptureRequest(0, new Size(640, 360), 5);
-        } catch(Exception e){
-            opMode.telemetry.addData("CAMERA: ", "ERROR");
+
+        try {
+            webcamName = hardwareMap.get(WebcamName.class, "webcam1");
+            cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName()); //USED FOR LIVE PREVIEW
+            OpenCvCamera camera = OpenCvCameraFactory.getInstance().createWebcam(webcamName, cameraMonitorViewId);
+        } catch (Exception e){
+            opMode.telemetry.addData("CV camera error", " ERRRR");
         }
-
-
 
         // Have to test this when the drive train is created
         setMotorsToZero();

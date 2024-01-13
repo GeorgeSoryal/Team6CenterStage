@@ -4,6 +4,9 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
+import org.openftc.easyopencv.OpenCvCamera;
+import org.openftc.easyopencv.OpenCvCameraRotation;
+
 
 @TeleOp(name="TeleOpFR")
 public class TeleOpMain extends LinearOpMode {
@@ -20,14 +23,31 @@ public class TeleOpMain extends LinearOpMode {
         final double armDown = 0;
         final double armUp = -900;
 
-        telemetry.addData("Arm position", hw.clawArm.getCurrentPosition());
         telemetry.addData("TeleOp: ", "Ready for start, Initialized");
         telemetry.update();
 
         waitForStart();
 
 
-        telemetry.addData("TeleOp: ", "Starting...");
+        //hw.camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
+//        {
+//            @Override
+//            public void onOpened()
+//            {
+//                // Usually this is where you'll want to start streaming from the camera (see section 4)
+//                //hw.camera.startStreaming(1280,720, OpenCvCameraRotation.UPRIGHT);
+//                //pipeLine.addTelemetry(telemetry);
+//                //hw.camera.setPipeline(pipeLine);
+//            }
+//            @Override
+//            public void onError(int errorCode)
+//            {
+//                /*
+//                 * This will be called if the camera could not be opened
+//                 */
+//            }
+//        });
+
         telemetry.update();
 
         hw.setMotorsToZero();
@@ -47,7 +67,6 @@ public class TeleOpMain extends LinearOpMode {
             if(gamepad2.a){
                 double roundedClawPosition = Math.round((hw.clawLeft.getPosition() * 1000)) / 1000.0;
                 if(roundedClawPosition == hw.SERVO_1_OPEN_POSITION && !isAPressed){
-                    telemetry.addData("ARM OPENING: ", "A PRESSED");
                     hw.clawLeft.setPosition(hw.SERVO_1_CLOSED_POSITION);
                     hw.clawRight.setPosition(hw.SERVO_1_CLOSED_POSITION);
                 }else if(!isAPressed){
@@ -83,7 +102,7 @@ public class TeleOpMain extends LinearOpMode {
 //            }
 
             hw.telemetryHardware();
-            telemetry.addData("\nArm position", hw.clawArm.getCurrentPosition());
+
 
             telemetry.update();
             //cycle every 10 milliseconds, to prevent memory death --> 100 cycles/s
@@ -92,15 +111,6 @@ public class TeleOpMain extends LinearOpMode {
 
         // sets all to 0 power
         hw.setMotorsToZero();
-    }
-
-    public double curveInput(double input) { //NOTE: new function needed, causes drift
-        /*
-            curve function:
-            y = (-2.09 / (1+e^4x)) + 1.04
-        */
-
-        return ((-2.09 / (1 + Math.pow(Math.E, 4 * input))) + 1.04);
     }
 
 }

@@ -191,6 +191,8 @@ public class Auto extends LinearOpMode {
 
     /**
      * @param angle from -180 to 180 degrees
+     * positive = turn left
+     * negative = turn right
      */
     private void turnByGyro(double angle, double power){
         // this will always the same way
@@ -315,6 +317,8 @@ public class Auto extends LinearOpMode {
 
         hw.clawArm.setPower(0);
     }
+
+
 
     public void autoLB(ParkingDirection parking) {
         switch (parking) {
