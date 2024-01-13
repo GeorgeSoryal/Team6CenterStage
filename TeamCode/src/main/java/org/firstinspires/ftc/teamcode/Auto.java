@@ -40,7 +40,9 @@ public class Auto extends LinearOpMode {
         hw.init(hardwareMap);
         hw.setMotorsToZero();
         hw.gyro.resetYaw();
-        // TODO Make servo clamp down here
+        clampDownClaws();
+
+        // ARM init double checking, specially for auto
         hw.clawArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         hw.clawArm.setTargetPosition(0);
         hw.clawArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -56,14 +58,15 @@ public class Auto extends LinearOpMode {
         hw.clawArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         hw.clawArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-        hw.clawArm.setTargetPosition(-1640);
+        hw.clawArm.setTargetPosition(hw.CLAW_ARM_BACK_POSITION);
         hw.clawArm.setPower(-DEFAULT_POWER);
-        while (hw.clawArm.getCurrentPosition() > -1640);
+        while (hw.clawArm.getCurrentPosition() > hw.CLAW_ARM_BACK_POSITION);
         hw.clawArm.setPower(0);
 
 
         waitForStart();
 
+        // Return to down position
         hw.clawArm.setTargetPosition(0);
         hw.clawArm.setPower(DEFAULT_POWER);
         while (hw.clawArm.getCurrentPosition() < 0);
@@ -199,6 +202,7 @@ public class Auto extends LinearOpMode {
 
             // Determine the heading current error
             headingError = angle - hw.getGyroAngle();
+            headingError = headingError < 0 ? -headingError : headingError;
             telemetry.addData("Heading Error: ", headingError);
             
             // turnDirection instead of -1
@@ -218,6 +222,19 @@ public class Auto extends LinearOpMode {
         resetEncoders(); // Test
     }
 
+    private void clampDownClaws(){
+        hw.clawLeft.setPosition(hw.SERVO_1_CLOSED_POSITION);
+        hw.clawRight.setPosition(hw.SERVO_2_CLOSED_POSITION);
+    }
+
+    private void clampOpenClaws(){
+        hw.clawLeft.setPosition(hw.SERVO_1_OPEN_POSITION);
+        hw.clawRight.setPosition(hw.SERVO_2_OPEN_POSITION);
+    }
+
+    /**
+     * Also sets the motors to run to position at the end.
+     */
     public void resetEncoders() {
         hw.frontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         hw.frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);

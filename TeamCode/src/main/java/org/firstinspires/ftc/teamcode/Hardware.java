@@ -3,18 +3,13 @@ package org.firstinspires.ftc.teamcode;
 //import com.google.blocks.ftcrobotcontroller.runtime.CRServoAccess;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.hardware.ServoController;
 
-import org.firstinspires.ftc.robotcore.external.hardware.camera.Camera;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.VisionProcessor;
 
 public class Hardware {
@@ -24,6 +19,7 @@ public class Hardware {
     static final double TICKS_PER_INCH = (TICKS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) / (WHEEL_DIAMETER_INCHES * 3.1415);
     final private double DRIVE_SPEED = 0.6;
 //    final private double TURN_SPEED = 0.5;
+    public final int CLAW_ARM_BACK_POSITION = -1640;
     public DcMotor frontLeft = null;
     public DcMotor frontRight = null;
     public DcMotor backLeft = null;
@@ -33,6 +29,13 @@ public class Hardware {
     public Servo clawLeft = null;
     public Servo clawRight = null;
     public VisionProcessor visionProcessor;
+    //arm servo values (servo1 = claw left) (servo2 = claw right)
+    //open
+    public final double SERVO_1_OPEN_POSITION = 0.97 - 0.11;
+    public final double SERVO_2_OPEN_POSITION = 0.97 - 0.182; //claw2 = more movement
+    //close
+    public final double SERVO_1_CLOSED_POSITION =  0.94 - (0.13 + 0.215);
+    public final double SERVO_2_CLOSED_POSITION = 0.94- (0.18 + 0.190);
 //    public AprilTag
     public IMU gyro;
 
@@ -90,7 +93,6 @@ public class Hardware {
         } finally {
             opMode.telemetry.update();
         }
-
         try { //clawArm
             clawArm = hardwareMap.get(DcMotor.class, "armClaw");
             clawArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -103,8 +105,6 @@ public class Hardware {
 
         try { //claw servo 1
             clawLeft = hardwareMap.get(Servo.class, "claw1"); // port 0
-            clawLeft.getController().pwmEnable();
-
         } catch (Exception e){
             opMode.telemetry.addData("clawLeft: ", "Error");
         } finally {

@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 
-@TeleOp(name="TeleOp")
+@TeleOp(name="TeleOpFR")
 public class TeleOpMain extends LinearOpMode {
 
 
@@ -15,15 +15,6 @@ public class TeleOpMain extends LinearOpMode {
         hw.init(hardwareMap);
 
         boolean isAPressed = false;
-
-        //arm servo values (servo1 = claw left) (servo2 = claw right)
-        //open
-        final double servo1open = 0.97 - 0.11;
-        final double servo2open = 0.97 - 0.182; //claw2 = more movement
-        //close
-        final double servo1close =  0.94 - (0.13 + 0.215);
-        final double servo2close = 0.94- (0.18 + 0.190);
-
 
         //arm values
         final double armDown = 0;
@@ -54,17 +45,16 @@ public class TeleOpMain extends LinearOpMode {
 
 
             if(gamepad2.a){
-                if(Math.round((hw.clawLeft.getPosition() * 1000))/1000.0 == servo1open){
-                    if(!isAPressed){
-                        hw.clawLeft.setPosition(servo1close);
-                        hw.clawRight.setPosition(servo2close);
-                    }
-                }else{
-                    if(!isAPressed){
-                        hw.clawLeft.setPosition(servo1open);
-                        hw.clawRight.setPosition(servo2open);
-                    }
+                double roundedClawPosition = Math.round((hw.clawLeft.getPosition() * 1000)) / 1000.0;
+                if(roundedClawPosition == hw.SERVO_1_OPEN_POSITION && !isAPressed){
+                    telemetry.addData("ARM OPENING: ", "A PRESSED");
+                    hw.clawLeft.setPosition(hw.SERVO_1_CLOSED_POSITION);
+                    hw.clawRight.setPosition(hw.SERVO_1_CLOSED_POSITION);
+                }else if(!isAPressed){
+                    hw.clawLeft.setPosition(hw.SERVO_1_OPEN_POSITION);
+                    hw.clawRight.setPosition(hw.SERVO_2_OPEN_POSITION);
                 }
+
                 isAPressed = true;
             }else{
                 isAPressed = false;
