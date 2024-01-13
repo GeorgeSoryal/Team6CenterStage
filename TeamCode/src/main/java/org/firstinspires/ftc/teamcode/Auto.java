@@ -7,6 +7,12 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 
+/**
+ * Strafing: right = negative, left = positive
+ * Driving: backward = negative, forward = positive
+ * turn by encoder: turn left = negative, turn right = positive
+ * turn by gyro: idk
+ */
 @Autonomous(name="Autonomous")
 public class Auto extends LinearOpMode {
     static final double TICKS_PER_MOTOR_REV = ((((1 + ((double) 46 / 17))) * (1 + ((double) 46 / 11))) * 28);
@@ -155,7 +161,7 @@ public class Auto extends LinearOpMode {
 
     }
 
-    //positive power -> turn left, negative power -> turn right
+    //positive power -> turn right, negative power -> turn left
     public void turnByEncoder(double angle, double power) {
         resetEncoders();
         angle = (angle / 360) * (8 * TICKS_PER_MOTOR_REV); //8 motor revs = 360 degree turn
@@ -296,32 +302,36 @@ public class Auto extends LinearOpMode {
 
     public void autoLB(ParkingDirection parking) {
         switch (parking) {
-            case right:
+            case right: //done parking
                 // forward then strafe
                 drive(45, DEFAULT_POWER);
-            case left:
+                drive(-7, -DEFAULT_POWER);
+                strafe(-18, -DEFAULT_POWER);
+                drive(28, DEFAULT_POWER);
+                strafe(-28, -DEFAULT_POWER);
+            case left: // done parking
                 // back to wall then strafe
                 defaultAutoBackToWall();
+                strafe(-46, -DEFAULT_POWER);
         }
-        strafe(-46, -DEFAULT_POWER);
     }
 
     public void autoRB(ParkingDirection parking) {
         switch (parking) {
-            case right:
-                drive(DISTANCE_TO_SPIKE_MARK, DEFAULT_POWER);
-                drive(-25, -DEFAULT_POWER);
-                moveArm(0, DEFAULT_POWER);
-                turnByGyro(90, DEFAULT_POWER);
-                drive(80, DEFAULT_POWER);
-                break;
-            case left:
+            case right: // done parking
                 drive(DISTANCE_TO_SPIKE_MARK, DEFAULT_POWER);
                 drive(-7, -DEFAULT_POWER);
                 strafe(18, DEFAULT_POWER);
                 drive(35.5, DEFAULT_POWER);
                 strafe(-130, -DEFAULT_POWER);
                 drive(-12, -DEFAULT_POWER);
+                break;
+            case left: //done parking
+                drive(DISTANCE_TO_SPIKE_MARK, DEFAULT_POWER);
+                drive(-25, -DEFAULT_POWER);
+                moveArm(0, DEFAULT_POWER);
+                turnByGyro(90, DEFAULT_POWER);
+                drive(80, DEFAULT_POWER);
                 break;
 
         }
@@ -330,14 +340,14 @@ public class Auto extends LinearOpMode {
     public void autoLR(ParkingDirection parking) {
         // DONE
         switch (parking) {
-            case right:
+            case right: /** test it **/
                 drive(DISTANCE_TO_SPIKE_MARK, DEFAULT_POWER);
                 drive(-25, -DEFAULT_POWER);
                 moveArm(0, DEFAULT_POWER);
-                turnByGyro(-90, DEFAULT_POWER);
-                drive(80, DEFAULT_POWER);
+                turnByGyro(90, DEFAULT_POWER);
+                drive(-80, -DEFAULT_POWER);
                 break;
-            case left:
+            case left: // done pakeinf
                 drive(DISTANCE_TO_SPIKE_MARK, DEFAULT_POWER);
                 drive(-7, -DEFAULT_POWER);
                 strafe(18, DEFAULT_POWER);
@@ -350,11 +360,11 @@ public class Auto extends LinearOpMode {
 
     public void autoRR(ParkingDirection parking) {
         switch (parking) {
-            case right:
+            case right: // done parking
                 defaultAutoBackToWall();
                 strafe(-46, -DEFAULT_POWER);
                 break;
-            case left:
+            case left: //done parking
                 drive(DISTANCE_TO_SPIKE_MARK, DEFAULT_POWER);
                 drive(-7, -DEFAULT_POWER);
                 strafe(-18, DEFAULT_POWER);
