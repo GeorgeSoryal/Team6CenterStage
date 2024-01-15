@@ -8,6 +8,11 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.openftc.easyopencv.OpenCvCamera;
+import org.openftc.easyopencv.OpenCvCameraFactory;
+import org.openftc.easyopencv.OpenCvCameraRotation;
+
 
 /**
  * Strafing: right = negative, left = positive
@@ -26,6 +31,9 @@ public class Auto extends LinearOpMode {
     // always absolute values since its distances and its less confusing for me even though DISTANCE_BACK_TO_WALL will
     // never be used as a positive
     final private double DISTANCE_TO_SPIKE_MARK = 27.5;
+    OpenCvCamera camera = null;
+    int cameraMonitorViewId = 0;
+    WebcamName webcamName = null;
     Hardware hw = new Hardware(this);
 
 
@@ -51,7 +59,9 @@ public class Auto extends LinearOpMode {
         hw.gyro.resetYaw();
         clampDownClaws();
 
-        // ARM init double checking, specially for auto
+        initCamera();
+
+        // ARM init double checking, especially for auto
         hw.clawArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         hw.clawArm.setTargetPosition(0);
         hw.clawArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -61,7 +71,7 @@ public class Auto extends LinearOpMode {
         try {
             autoMode = getAutoMode();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Failed to get Input: ", e);
         }
 
         hw.clawArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -114,6 +124,34 @@ public class Auto extends LinearOpMode {
                 }
             }
         }
+    }
+
+    public void initCamera(){
+        webcamName = hardwareMap.get(WebcamName.class, "webcam1");
+        cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName()); //USED FOR LIVE PREVIEW
+        camera = OpenCvCameraFactory.getInstance().createWebcam(webcamName, cameraMonitorViewId);
+
+        camera.setPipeline(new pipeLine());
+
+        camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
+        {
+            @Override
+            public void onOpened()
+            {
+                // Usually this is where you'll want to start streaming from the camera (see section 4)
+                camera.startStreaming(640,360, OpenCvCameraRotation.UPRIGHT);
+                //camera.startRecordingPipeline();
+//                pipeLine.addTelemetry(telemetry);
+//                hw.camera.setPipeline(pipeLine);
+            }
+            @Override
+            public void onError(int errorCode)
+            {
+                /*
+                 * This will be called if the camera could not be opened
+                 */
+            }
+        });
     }
 
     public void drive(double inches, double power) {
@@ -231,7 +269,6 @@ public class Auto extends LinearOpMode {
 
             hw.telemetryHardware();
         }
-
         hw.setMotorsToZero();
         resetEncoders(); // Test
     }
@@ -247,7 +284,7 @@ public class Auto extends LinearOpMode {
     }
 
     /**
-     * Also sets the motors to run to position at the end.
+     * Drivetrain motors Stop and reset and then sets the motors to run to position at the end.
      */
     public void resetEncoders() {
         hw.frontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -272,10 +309,13 @@ public class Auto extends LinearOpMode {
 
         telemetry.addData("RUN DEFAULT? Y (left) / N (RIGHT)", "");
         telemetry.update();
-        defaultYN = getInput("Y", "N");
+        defaultYN += getInput("Y", "N");
 
-        if(defaultYN.equals("Y"))
+        if(defaultYN.equals("Y")){
+            telemetry.addData("starting", "");
+            telemetry.update();
             return null;
+        }
         telemetry.addData("enter auto mode: ", "\n - blue [dpad left]\n - red: [dpad right]\n");
         telemetry.update();
         mode += getInput("blue", "right");

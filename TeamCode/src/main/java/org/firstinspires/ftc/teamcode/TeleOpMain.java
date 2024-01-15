@@ -4,18 +4,24 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.openftc.easyopencv.OpenCvCamera;
+import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 
 
 @TeleOp(name="TeleOpFR")
 public class TeleOpMain extends LinearOpMode {
+    OpenCvCamera camera = null;
+    int cameraMonitorViewId = 0;
+    WebcamName webcamName = null;
+    Hardware hw = new Hardware(this);
 
 
     @Override
     public void runOpMode() throws InterruptedException {
-        Hardware hw = new Hardware(this);
         hw.init(hardwareMap);
+        initCamera();
 
         boolean isAPressed = false;
 
@@ -29,24 +35,7 @@ public class TeleOpMain extends LinearOpMode {
         waitForStart();
 
 
-        //hw.camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
-//        {
-//            @Override
-//            public void onOpened()
-//            {
-//                // Usually this is where you'll want to start streaming from the camera (see section 4)
-//                //hw.camera.startStreaming(1280,720, OpenCvCameraRotation.UPRIGHT);
-//                //pipeLine.addTelemetry(telemetry);
-//                //hw.camera.setPipeline(pipeLine);
-//            }
-//            @Override
-//            public void onError(int errorCode)
-//            {
-//                /*
-//                 * This will be called if the camera could not be opened
-//                 */
-//            }
-//        });
+
 
         telemetry.update();
 
@@ -111,6 +100,33 @@ public class TeleOpMain extends LinearOpMode {
 
         // sets all to 0 power
         hw.setMotorsToZero();
+    }
+
+    public void initCamera(){
+        webcamName = hardwareMap.get(WebcamName.class, "webcam1");
+        cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName()); //USED FOR LIVE PREVIEW
+        camera = OpenCvCameraFactory.getInstance().createWebcam(webcamName, cameraMonitorViewId);
+
+        camera.setPipeline(new pipeLine());
+
+        camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
+        {
+            @Override
+            public void onOpened()
+            {
+                // Usually this is where you'll want to start streaming from the camera (see section 4)
+                camera.startStreaming(640,360, OpenCvCameraRotation.UPRIGHT);
+//                pipeLine.addTelemetry(telemetry);
+//                hw.camera.setPipeline(pipeLine);
+            }
+            @Override
+            public void onError(int errorCode)
+            {
+                /*
+                 * This will be called if the camera could not be opened
+                 */
+            }
+        });
     }
 
 }

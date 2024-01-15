@@ -5,6 +5,7 @@ import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -33,10 +34,7 @@ public class Hardware {
     public DcMotor clawArm = null;
     public Servo clawLeft = null;
     public Servo clawRight = null;
-    public VisionProcessor visionProcessor;
-    OpenCvCamera camera = null;
-    int cameraMonitorViewId = 0;
-    WebcamName webcamName = null;
+    public DigitalChannel infaredSensor = null;
 
     //arm servo values (servo1 = claw right) (servo2 = claw left)
     //open
@@ -45,7 +43,7 @@ public class Hardware {
     public final double SERVO_2_OPEN_POSITION = 0.465;//0.565; //0.97 - 0.182 +0.05; //claw2 = more movement
     //close
     public final double SERVO_1_CLOSED_POSITION =  0.718;//0.88; //+ SERVO_OFFSET;//SERVO_1_OPEN_POSITION - 0.2;//0.94 - (0.13 + 0.215) - 0.15;
-    public final double SERVO_2_CLOSED_POSITION = 0.73;//0.275; //SERVO_2_OPEN_POSITION - 0.2;//0.94- (0.18 + 0.190) ;
+    public final double SERVO_2_CLOSED_POSITION = 0.730;//0.275; //SERVO_2_OPEN_POSITION - 0.2;//0.94- (0.18 + 0.190) ;
 //    public AprilTag
     public IMU gyro;
 
@@ -146,20 +144,14 @@ public class Hardware {
             opMode.telemetry.update();
         }
 
-        try {
-//            visionPortal = new VisionPortal.Builder().build();
+        try { // infared sensor
+            infaredSensor = hardwareMap.get(DigitalChannel.class, "infaredSensor");
+            infaredSensor.setMode(DigitalChannel.Mode.INPUT);
         } catch (Exception e){
-            opMode.telemetry.addData("Camera Error", "ERROR");
-            opMode.telemetry.update();
+            opMode.telemetry.addData("infared: ", "ERROR");
         }
 
-        try {
-            webcamName = hardwareMap.get(WebcamName.class, "webcam1");
-            cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName()); //USED FOR LIVE PREVIEW
-            OpenCvCamera camera = OpenCvCameraFactory.getInstance().createWebcam(webcamName, cameraMonitorViewId);
-        } catch (Exception e){
-            opMode.telemetry.addData("CV camera error", " ERRRR");
-        }
+
 
         // Have to test this when the drive train is created
         setMotorsToZero();
