@@ -2,6 +2,8 @@ package org.firstinspires.ftc.teamcode;
 
 import android.util.Pair;
 
+import androidx.annotation.NonNull;
+
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -20,7 +22,7 @@ public class Auto extends LinearOpMode {
     static final double WHEEL_DIAMETER_INCHES = 3.78;
     static final double TICKS_PER_INCH = (TICKS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) / (WHEEL_DIAMETER_INCHES * 3.1415);
     //final private double DRIVE_SPEED = 0.6;
-    final private double DEFAULT_POWER = 0.9;
+    final private double DEFAULT_POWER = 0.7;
     // always absolute values since its distances and its less confusing for me even though DISTANCE_BACK_TO_WALL will
     // never be used as a positive
     final private double DISTANCE_TO_SPIKE_MARK = 27.5;
@@ -38,7 +40,8 @@ public class Auto extends LinearOpMode {
         BlueRight,
         BlueLeft,
         RedRight,
-        RedLeft;
+        RedLeft,
+        DEFAULT;
     }
 
     @Override
@@ -79,32 +82,36 @@ public class Auto extends LinearOpMode {
         hw.clawArm.setPower(DEFAULT_POWER);
 
         drive(DISTANCE_TO_SPIKE_MARK, DEFAULT_POWER);
-        ParkingDirection parking = autoMode.second;
-        boolean hasRun = false;
-        while(opModeIsActive() && !hasRun) {
-            hasRun = true;
-            switch (autoMode.first) {
-                case BlueLeft:
-                    autoLB(parking);
-                    break;
+        if(autoMode == null){
+            defaultAutoBackToWall();
+        } else {
+            ParkingDirection parking = autoMode.second;
+            boolean hasRun = false;
+            while(opModeIsActive() && !hasRun) {
+                hasRun = true;
+                switch (autoMode.first) {
+                    case BlueLeft:
+                        autoLB(parking);
+                        break;
 
-                case BlueRight:
-                    autoRB(parking);
-                    break;
+                    case BlueRight:
+                        autoRB(parking);
+                        break;
 
-                case RedLeft:
-                    autoLR(parking);
-                    break;
+                    case RedLeft:
+                        autoLR(parking);
+                        break;
 
-                case RedRight:
-                    autoRR(parking);
-                    break;
+                    case RedRight:
+                        autoRR(parking);
+                        break;
 
-                default:
-                    telemetry.addData("ERROR: ", "MODE NOT FOUND");
-                    telemetry.update();
-                    defaultAutoBackToWall();
-                    break;
+                    default:
+                        telemetry.addData("ERROR: ", "MODE NOT FOUND");
+                        telemetry.update();
+                        defaultAutoBackToWall();
+                        break;
+                }
             }
         }
     }
@@ -118,10 +125,7 @@ public class Auto extends LinearOpMode {
         hw.frontRight.setPower(power);
         hw.backLeft.setPower(power);
         hw.backRight.setPower(power);
-        while (hw.isNotAtTargetPosition() && opModeIsActive()){
-            telemetry.addData("Driving: ", "Telemetry");
-            hw.telemetryHardware();
-        }
+        while (hw.isNotAtTargetPosition() && opModeIsActive());
 
         hw.setMotorsToZero();
 
@@ -251,10 +255,10 @@ public class Auto extends LinearOpMode {
         hw.backRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         hw.backLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
-        hw.frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        hw.frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        hw.backLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        hw.backRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        hw.frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        hw.frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        hw.backLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        hw.backRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
     /**
@@ -264,8 +268,15 @@ public class Auto extends LinearOpMode {
         hw.clawArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
         String mode = "";
+        String defaultYN = "";
 
-        telemetry.addData("enter auto mode: ", "\n - blue [dpad left]\n - red: [dpad right]");
+        telemetry.addData("RUN DEFAULT? Y (left) / N (RIGHT)", "");
+        telemetry.update();
+        defaultYN = getInput("Y", "N");
+
+        if(defaultYN.equals("Y"))
+            return null;
+        telemetry.addData("enter auto mode: ", "\n - blue [dpad left]\n - red: [dpad right]\n");
         telemetry.update();
         mode += getInput("blue", "right");
 
@@ -381,6 +392,8 @@ public class Auto extends LinearOpMode {
     public void autoRR(ParkingDirection parking) {
         switch (parking) {
             case right: // done parking
+                telemetry.addData("right right right", "");
+                telemetry.update();
                 defaultAutoBackToWall();
                 strafe(-46, -DEFAULT_POWER);
                 break;
