@@ -140,9 +140,7 @@ public class Auto extends LinearOpMode {
             {
                 // Usually this is where you'll want to start streaming from the camera (see section 4)
                 camera.startStreaming(640,360, OpenCvCameraRotation.UPRIGHT);
-                //camera.startRecordingPipeline();
-//                pipeLine.addTelemetry(telemetry);
-//                hw.camera.setPipeline(pipeLine);
+
             }
             @Override
             public void onError(int errorCode)

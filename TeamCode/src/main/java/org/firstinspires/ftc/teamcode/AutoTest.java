@@ -1,12 +1,19 @@
 package org.firstinspires.ftc.teamcode;
 
+import static org.firstinspires.ftc.teamcode.pipeLine.leftMean;
+import static org.firstinspires.ftc.teamcode.pipeLine.middleMean;
+import static org.firstinspires.ftc.teamcode.pipeLine.rightMean;
+
 import android.util.Pair;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.openftc.easyopencv.OpenCvCamera;
+import org.openftc.easyopencv.OpenCvCameraFactory;
+import org.openftc.easyopencv.OpenCvCameraRotation;
 
 
 /**
@@ -26,9 +33,11 @@ public class AutoTest extends LinearOpMode {
     // always absolute values since its distances and its less confusing for me even though DISTANCE_BACK_TO_WALL will
     // never be used as a positive
     final private double DISTANCE_TO_SPIKE_MARK = 27.5;
+
+    OpenCvCamera camera = null;
+    int cameraMonitorViewId = 0;
+    WebcamName webcamName = null;
     Hardware hw = new Hardware(this);
-
-
 
     // left or right in the parking area from the robots perspective
     private enum ParkingDirection {
@@ -81,11 +90,51 @@ public class AutoTest extends LinearOpMode {
             hasRun = true;
             //currently: forward then back
 //            hw.clawArm.setTargetPosition();
-                drive(25.5,DEFAULT_POWER);
-                drive(-25.5,-DEFAULT_POWER);
+                if (leftMean.val[0] > 150){
+                    telemetry.addData("CV: ", "left");
+                    telemetry.update();
+                } else if(middleMean.val[0] > 150) {
+                    telemetry.addData("CV: ", "middle");
+                    telemetry.update();
+                } else if(rightMean.val[0] > 150){
+                    telemetry.addData("CV: ", "right");
+                    telemetry.update();
+                }
         }
     }
 
+    public void initCamera(){
+        webcamName = hardwareMap.get(WebcamName.class, "webcam1");
+        cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName()); //USED FOR LIVE PREVIEW
+        camera = OpenCvCameraFactory.getInstance().createWebcam(webcamName, cameraMonitorViewId);
+
+        camera.setPipeline(new pipeLine());
+
+        camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
+        {
+            @Override
+            public void onOpened()
+            {
+                // Usually this is where you'll want to start streaming from the camera (see section 4)
+                camera.startStreaming(640,360, OpenCvCameraRotation.UPRIGHT);
+
+            }
+            @Override
+            public void onError(int errorCode)
+            {
+                /*
+                 * This will be called if the camera could not be opened
+                 */
+            }
+        });
+    }
+
+
+    /**
+     * filler arc below
+     * @param inches
+     * @param power
+     */
     public void drive(double inches, double power) {
         resetEncoders();
         int targetPosition = (int) (inches * TICKS_PER_INCH);
