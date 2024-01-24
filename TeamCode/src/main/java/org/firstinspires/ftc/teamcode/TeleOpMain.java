@@ -80,15 +80,6 @@ public class TeleOpMain extends LinearOpMode {
                 hw.clawArm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             }
 
-//            if(gamepad1.right_trigger > 0.5){
-//                if(hw.clawArm.getCurrentPosition() < 0){
-//                    hw.clawArm.setPower(0.8);
-//                    while(hw.clawArm.getCurrentPosition() < 0);
-//                } else {
-//                    hw.clawArm.setPower(-0.8);
-//                    while(hw.clawArm.getCurrentPosition() > 0);
-//                }
-//            }
 
             hw.telemetryHardware();
 

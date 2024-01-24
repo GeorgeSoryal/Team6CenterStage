@@ -16,10 +16,8 @@ public class pipeLine  extends OpenCvPipeline {
     Mat middleCrop;
     Mat rightCrop;
 //    Scalar rectColor = new Scalar(255,1,1);
+    Mat v1;
 
-    static Scalar leftMean;
-    static Scalar middleMean;
-    static Scalar rightMean;
 
     @Override
     public Mat processFrame(Mat input) throws CvException {
@@ -31,8 +29,9 @@ public class pipeLine  extends OpenCvPipeline {
 
         input = input.submat(new Rect(0,  0, 640 , 360));
 
-//        Imgproc.rectangle(output, leftRect, rectColor, 2);
-//        Imgproc.rectangle(output, rightRect, rectColor, 2);
+        Imgproc.rectangle(output, leftRect, new Scalar(255,0,0), 2);
+        Imgproc.rectangle(output, rightRect, new Scalar(255,0,0), 2);
+
 
         leftCrop = input.submat(leftRect);
         middleCrop = input.submat(middleRect);
@@ -42,10 +41,18 @@ public class pipeLine  extends OpenCvPipeline {
         Core.extractChannel(middleCrop,middleCrop,2);
         Core.extractChannel(rightCrop,rightCrop,2);
 
-        leftMean = Core.mean(leftCrop);
-        middleMean = Core.mean(middleCrop);
-        rightMean = Core.mean(rightCrop);
+        Scalar leftMean = Core.mean(leftCrop);
+        Scalar middleMean = Core.mean(middleCrop);
+        Scalar rightMean = Core.mean(rightCrop);
+
+        if(leftMean.val[0] > 200){
+
+        }
 
         return input;
+    }
+
+    public String getPropPos(){
+
     }
 }

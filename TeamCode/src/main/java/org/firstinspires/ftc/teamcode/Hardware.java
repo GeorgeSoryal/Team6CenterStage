@@ -1,9 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
 //import com.google.blocks.ftcrobotcontroller.runtime.CRServoAccess;
-import static org.firstinspires.ftc.teamcode.pipeLine.leftMean;
-import static org.firstinspires.ftc.teamcode.pipeLine.middleMean;
-import static org.firstinspires.ftc.teamcode.pipeLine.rightMean;
 
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -188,9 +185,9 @@ public class Hardware {
 
         opMode.telemetry.addData("\n Gyro angle: ", getGyroAngle()+180.0);
 
-        opMode.telemetry.addData("LeftAverage red: ", leftMean.val[0]);
-        opMode.telemetry.addData("middleAverage red: ", middleMean.val[0]);
-        opMode.telemetry.addData("rightAverage red: ", rightMean.val[0]);
+//        opMode.telemetry.addData("LeftAverage red: ", leftMean.val[0]);
+//        opMode.telemetry.addData("middleAverage red: ", middleMean.val[0]);
+//        opMode.telemetry.addData("rightAverage red: ", rightMean.val[0]);
 
         opMode.telemetry.update();
     }
