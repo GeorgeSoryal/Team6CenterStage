@@ -35,6 +35,7 @@ public class AutoTest extends LinearOpMode {
     int cameraMonitorViewId = 0;
     WebcamName webcamName = null;
     Hardware hw = new Hardware(this);
+    String propPos = ""; //temp var
 
     // left or right in the parking area from the robots perspective
     private enum ParkingDirection {
@@ -104,17 +105,18 @@ public class AutoTest extends LinearOpMode {
         webcamName = hardwareMap.get(WebcamName.class, "webcam1");
         cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName()); //USED FOR LIVE PREVIEW
         camera = OpenCvCameraFactory.getInstance().createWebcam(webcamName, cameraMonitorViewId);
-
-        camera.setPipeline(new pipeLine());
+        pipeLine pipeline = new pipeLine();
+        camera.setPipeline(pipeline);
 
         camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
         {
+            /** TODO: check if onOpened() runs forever, asynchronously **/
             @Override
             public void onOpened()
             {
                 // Usually this is where you'll want to start streaming from the camera (see section 4)
                 camera.startStreaming(640,360, OpenCvCameraRotation.UPRIGHT);
-
+                propPos = pipeline.getPropPos();
             }
             @Override
             public void onError(int errorCode)
@@ -123,6 +125,7 @@ public class AutoTest extends LinearOpMode {
                  * This will be called if the camera could not be opened
                  */
             }
+
         });
     }
 

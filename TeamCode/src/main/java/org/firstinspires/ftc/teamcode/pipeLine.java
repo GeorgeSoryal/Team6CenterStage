@@ -9,15 +9,15 @@ import org.opencv.imgproc.Imgproc;
 import org.openftc.easyopencv.OpenCvPipeline;
 import java.util.ArrayList;
 
-public class pipeLine  extends OpenCvPipeline {
-    
+public class pipeLine extends OpenCvPipeline {
+
     Mat main = new Mat();
     Mat output = new Mat();
     Mat leftCrop;
     Mat middleCrop;
     Mat rightCrop;
-//    Scalar rectColor = new Scalar(255,1,1);
-    Mat v1;
+    //    Scalar rectColor = new Scalar(255,1,1);
+    String propPos = "";
 
     @Override
     public Mat processFrame(Mat input) throws CvException {
@@ -37,6 +37,7 @@ public class pipeLine  extends OpenCvPipeline {
         middleCrop = input.submat(middleRect);
         rightCrop = input.submat(rightRect);
 
+
         Core.extractChannel(leftCrop,leftCrop,2);
         Core.extractChannel(middleCrop,middleCrop,2);
         Core.extractChannel(rightCrop,rightCrop,2);
@@ -46,13 +47,31 @@ public class pipeLine  extends OpenCvPipeline {
         Scalar rightMean = Core.mean(rightCrop);
 
         if(leftMean.val[0] > 200){
-
+            propPos = "left red";
         }
+        if(leftMean.val[2] > 200){
+            propPos = "left blue";
+        }
+
+        if(middleMean.val[0] > 200){
+            propPos = "middle red";
+        }
+        if(middleMean.val[2] > 200){
+            propPos = "middle blue";
+        }
+
+        if(rightMean.val[0] > 200){
+            propPos = "right red";
+        }
+        if(rightMean.val[2] > 200){
+            propPos = "right blue";
+        }
+
 
         return input;
     }
 
-//    public String getPropPos(){
-//
-//    }
+    public String getPropPos(){
+        return propPos;
+    }
 }
