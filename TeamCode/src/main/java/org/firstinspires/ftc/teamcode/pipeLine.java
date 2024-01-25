@@ -52,7 +52,7 @@ public class pipeLine  extends OpenCvPipeline {
         return input;
     }
 
-    public String getPropPos(){
-
-    }
+//    public String getPropPos(){
+//
+//    }
 }
