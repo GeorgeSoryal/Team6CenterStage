@@ -2,14 +2,12 @@ package org.firstinspires.ftc.teamcode;
 
 import android.util.Pair;
 
+import androidx.annotation.NonNull;
+
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.openftc.easyopencv.OpenCvCamera;
-import org.openftc.easyopencv.OpenCvCameraFactory;
-import org.openftc.easyopencv.OpenCvCameraRotation;
 
 
 /**
@@ -18,8 +16,8 @@ import org.openftc.easyopencv.OpenCvCameraRotation;
  * turn by encoder: turn left = negative, turn right = positive
  * turn by gyro: idk
  */
-@Autonomous(name="Autonomous")
-public class Auto extends LinearOpMode {
+@Autonomous(name="AutonomousTestCases")
+public class AutoTestCases extends LinearOpMode {
     static final double TICKS_PER_MOTOR_REV = ((((1 + ((double) 46 / 17))) * (1 + ((double) 46 / 11))) * 28);
     static final double DRIVE_GEAR_REDUCTION = 1.0;
     static final double WHEEL_DIAMETER_INCHES = 3.78;
@@ -29,13 +27,10 @@ public class Auto extends LinearOpMode {
     // always absolute values since its distances and its less confusing for me even though DISTANCE_BACK_TO_WALL will
     // never be used as a positive
     final private double DISTANCE_TO_SPIKE_MARK = 27.5;
-    OpenCvCamera camera = null;
-    int cameraMonitorViewId = 0;
-    WebcamName webcamName = null;
     Hardware hw = new Hardware(this);
 
 
-    // left or right in the parking area from the robots perspective 
+    // left or right in the parking area from the robots perspective
     private enum ParkingDirection {
         left,
         right;
@@ -57,97 +52,14 @@ public class Auto extends LinearOpMode {
         hw.gyro.resetYaw();
         clampDownClaws();
 
-        initCamera();
-
         // ARM init double checking, especially for auto
         hw.clawArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         hw.clawArm.setTargetPosition(0);
         hw.clawArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         resetEncoders();
 
-        Pair<ParkingMode, ParkingDirection> autoMode;
-        autoMode = getAutoMode();   // Can throw InterruptedException
-
-        hw.clawArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        hw.clawArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-        hw.clawArm.setTargetPosition(hw.CLAW_ARM_BACK_POSITION);
-        hw.clawArm.setPower(-DEFAULT_POWER);
-        while (hw.clawArm.getCurrentPosition() > hw.CLAW_ARM_BACK_POSITION);
-        hw.clawArm.setPower(0);
-
         waitForStart();
-
-        // Return to down position
-        hw.clawArm.setTargetPosition(0);
-        hw.clawArm.setPower(DEFAULT_POWER);
-        while (hw.clawArm.getCurrentPosition() < 0);
-        hw.clawArm.setPower(DEFAULT_POWER);
-
-        drive(DISTANCE_TO_SPIKE_MARK, DEFAULT_POWER);
-        if(autoMode == null) {
-            while (opModeIsActive())
-                defaultAutoBackToWall();
-        }
-
-        //  Doesn't run if autoMode is default/ null, IDE doesn't recognize but the while loop is infinite
-        //  for the course of when the program will be run so all of Auto
-        ParkingDirection parking = autoMode.second;
-        boolean hasRun = false;
-        while(opModeIsActive() && !hasRun) {
-            hasRun = true;
-            switch (autoMode.first) {
-                case BlueLeft:
-                    autoLB(parking);
-                    break;
-
-                case BlueRight:
-                    autoRB(parking);
-                    break;
-
-                case RedLeft:
-                    autoLR(parking);
-                    break;
-
-                case RedRight:
-                    autoRR(parking);
-                    break;
-
-                default:
-                    telemetry.addData("ERROR: ", "MODE NOT FOUND");
-                    telemetry.update();
-                    defaultAutoBackToWall();
-                    break;
-                }
-        }
-    }
-
-    public void initCamera(){
-        webcamName = hardwareMap.get(WebcamName.class, "webcam1");
-        cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName()); //USED FOR LIVE PREVIEW
-        camera = OpenCvCameraFactory.getInstance().createWebcam(webcamName, cameraMonitorViewId);
-
-        camera.setPipeline(new PipeLine());
-
-        camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
-        {
-            @Override
-            public void onOpened()
-            {
-                // Usually this is where you'll want to start streaming from the camera (see section 4)
-                camera.startStreaming(640,360);
-                //camera.startRecordingPipeline();
-//                pipeLine.addTelemetry(telemetry);
-//                hw.camera.setPipeline(pipeLine);
-            }
-            @Override
-            public void onError(int errorCode)
-            {
-                /*
-                 * This will be called if the camera could not be opened
-                 */
-            }
-        });
+        turnByGyro(90,DEFAULT_POWER);
     }
 
     public void drive(double inches, double power) {
@@ -244,6 +156,7 @@ public class Auto extends LinearOpMode {
         hw.backLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         hw.backRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
+
         while (opModeIsActive() && Math.abs(hw.getGyroAngle()) < angle) {
             telemetry.addData("GyroTurning: ", "Telemetry");
 
@@ -252,7 +165,7 @@ public class Auto extends LinearOpMode {
             headingError = angle - hw.getGyroAngle();
             headingError = headingError < 0 ? -headingError : headingError;
             telemetry.addData("Heading Error: ", headingError);
-            
+
             // turnDirection instead of -1
             double rightWheelsPower = -turnDirection * (headingError);
             double leftWheelsPower = turnDirection * (headingError);
@@ -297,36 +210,30 @@ public class Auto extends LinearOpMode {
     /**
      * @return Pair: first = mode, second = parking
      **/
-    public Pair<ParkingMode, ParkingDirection> getAutoMode() throws InterruptedException {
+    public Pair<ParkingMode, ParkingDirection> getAutoMode() throws Exception {
         hw.clawArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
+        String mode = "";
         String defaultYN = "";
-        ParkingMode parkingMode = null;
 
         telemetry.addData("RUN DEFAULT? Y (left) / N (RIGHT)", "");
         telemetry.update();
-        defaultYN += getInput(new String[]{"Y", "N"});
+        defaultYN = getInput("Y", "N");
 
-        if(defaultYN.equals("Y")){
-            telemetry.addData("Starting", "");
-            telemetry.update();
+        if(defaultYN.equals("Y"))
             return null;
-        }
-        telemetry.addData("Enter auto mode: ",
-                "\n - BlueRight: [dpad left]\n" +
-                        " - BlueLeft: [dpad right]\n" +
-                        " - RedRight: [dpad up]\n" +
-                        " - RedLeft: [dpad down]\n");
+        telemetry.addData("enter auto mode: ", "\n - blue [dpad left]\n - red: [dpad right]\n");
         telemetry.update();
+        mode += getInput("blue", "right");
 
-        parkingMode = getInput(new ParkingMode[] {ParkingMode.BlueRight, ParkingMode.BlueLeft,
-                ParkingMode.RedRight, ParkingMode.RedLeft});
-
-        telemetry.addData("Parking: ",
-                "\n - Left: [dpad left]" +
-                "\n - Right: [dpad right]");
+        telemetry.addData("L/R: ", "\n - Left: [dpad left]\n - Right: [dpad right]");
         telemetry.update();
-        ParkingDirection parking = getInput(new ParkingDirection[] {ParkingDirection.left, ParkingDirection.right});
+        ParkingMode parkingMode = mode.equals("blue") ? getInput(ParkingMode.BlueLeft, ParkingMode.BlueRight)
+                : getInput(ParkingMode.RedLeft, ParkingMode.RedRight);
+
+        telemetry.addData("parking: ", "\n - Left: [dpad left]\n - Right: [dpad right]");
+        telemetry.update();
+        ParkingDirection parking = getInput(ParkingDirection.left, ParkingDirection.right);
 
         telemetry.addData("Set ", "to go");
         telemetry.update();
@@ -336,24 +243,18 @@ public class Auto extends LinearOpMode {
     }
 
     // any type T
-    public <T> T getInput(T[] modes) throws InterruptedException {
+    public <T> T getInput(T mode1, T mode2) throws Exception {
         while (opModeInInit()) {
-            if (gamepad1.dpad_left && modes[0] != null) {
+            if (gamepad1.dpad_left) {
                 sleep(500);
-                return modes[0];
-            } else if (gamepad1.dpad_right && modes[1] != null) {
+                return mode1;
+            } else if (gamepad1.dpad_right) {
                 sleep(500);
-                return modes[1];
-            } else if (gamepad1.dpad_up && modes[2] != null) {
-                sleep(500);
-                return modes[2];
-            } else if (gamepad1.dpad_down && modes[3] != null) {
-                sleep(500);
-                return modes[3];
+                return mode2;
             }
             sleep(30);
         }
-        throw new InterruptedException("Op Mode not meant to be init or this is not meant to be running.");
+        throw new Exception("Op Mode not meant to be init or this is not meant to be running.");
     }
 
     public void defaultAutoBackToWall() {

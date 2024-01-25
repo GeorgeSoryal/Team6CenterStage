@@ -18,11 +18,11 @@ public class TeleOpTwo extends LinearOpMode {
 
         //arm servo values (claw 1 = claw left)
         //open
-        final double servo1open = 0.359;
-        final double servo2open = 0.775;
+        final double servo1open = 0.533;
+        final double servo2open = 0.405;
         //close
-        final double servo1close = 0.560;
-        final double servo2close = 0.653;
+        final double servo1close = 0.267;
+        final double servo2close = 0.659;
 
         //arm values
         final double armDown = 0;

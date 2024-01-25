@@ -1,12 +1,10 @@
 package org.firstinspires.ftc.teamcode;
 
 //import com.google.blocks.ftcrobotcontroller.runtime.CRServoAccess;
-
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -35,7 +33,10 @@ public class Hardware {
     public DcMotor clawArm = null;
     public Servo clawLeft = null;
     public Servo clawRight = null;
-    public DigitalChannel infaredSensor = null;
+//    public VisionProcessor visionProcessor;
+//    OpenCvCamera camera = null;
+//    int cameraMonitorViewId = 0;
+//    WebcamName webcamName = null;
 
     //arm servo values (servo1 = claw right) (servo2 = claw left)
     //open
@@ -145,14 +146,17 @@ public class Hardware {
             opMode.telemetry.update();
         }
 
-        try { // infared sensor
-            infaredSensor = hardwareMap.get(DigitalChannel.class, "infaredSensor");
-            infaredSensor.setMode(DigitalChannel.Mode.INPUT);
+        try {
+//            visionPortal = new VisionPortal.Builder().build();
         } catch (Exception e){
-            opMode.telemetry.addData("infared: ", "ERROR");
+            opMode.telemetry.addData("Camera Error", "ERROR");
+            opMode.telemetry.update();
         }
 
-
+        try {
+        } catch (Exception e){
+            opMode.telemetry.addData("CV camera error", " ERRRR");
+        }
 
         // Have to test this when the drive train is created
         setMotorsToZero();
@@ -184,11 +188,6 @@ public class Hardware {
         opMode.telemetry.addData("clawArm target: ", clawArm.getTargetPosition());
 
         opMode.telemetry.addData("\n Gyro angle: ", getGyroAngle()+180.0);
-
-//        opMode.telemetry.addData("LeftAverage red: ", leftMean.val[0]);
-//        opMode.telemetry.addData("middleAverage red: ", middleMean.val[0]);
-//        opMode.telemetry.addData("rightAverage red: ", rightMean.val[0]);
-
         opMode.telemetry.update();
     }
 
