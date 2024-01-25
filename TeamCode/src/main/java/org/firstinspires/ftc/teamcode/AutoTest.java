@@ -105,7 +105,7 @@ public class AutoTest extends LinearOpMode {
         webcamName = hardwareMap.get(WebcamName.class, "webcam1");
         cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName()); //USED FOR LIVE PREVIEW
         camera = OpenCvCameraFactory.getInstance().createWebcam(webcamName, cameraMonitorViewId);
-        pipeLine pipeline = new pipeLine();
+        Pipeline pipeline = new Pipeline();
         camera.setPipeline(pipeline);
 
         camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
