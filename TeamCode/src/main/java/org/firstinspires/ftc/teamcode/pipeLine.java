@@ -19,7 +19,6 @@ public class pipeLine  extends OpenCvPipeline {
 //    Scalar rectColor = new Scalar(255,1,1);
     Mat v1;
 
-    ArrayList<Mat> GYATT = new ArrayList<>();
     @Override
     public Mat processFrame(Mat input) throws CvException {
         Imgproc.cvtColor(input, main, Imgproc.COLOR_RGB2BGR);
@@ -37,10 +36,6 @@ public class pipeLine  extends OpenCvPipeline {
         leftCrop = input.submat(leftRect);
         middleCrop = input.submat(middleRect);
         rightCrop = input.submat(rightRect);
-
-        GYATT.add(leftCrop);
-        GYATT.add(rightCrop);
-        GYATT.add(middleCrop);
 
         Core.extractChannel(leftCrop,leftCrop,2);
         Core.extractChannel(middleCrop,middleCrop,2);
