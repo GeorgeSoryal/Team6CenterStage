@@ -57,8 +57,6 @@ public class AutoTest extends LinearOpMode {
         hw.gyro.resetYaw();
         clampDownClaws();
 
-        Pair<Auto.ParkingMode, Auto.ParkingDirection> autoMode;
-        autoMode = getAutoMode();   // Can throw InterruptedException
 
         webcamName = hardwareMap.get(WebcamName.class, "webcam1");
         cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName()); //USED FOR LIVE PREVIEW
@@ -66,18 +64,14 @@ public class AutoTest extends LinearOpMode {
 
         BluePipeline bluePipeline = null;
         RedPipeline redPipeline = null;
-        switch(autoMode.first){
-            case RedLeft:
-            case RedRight:
-                redPipeline = new RedPipeline();
-                camera.setPipeline(redPipeline);
-                break;
-            case BlueLeft:
-            case BlueRight:
-                bluePipeline = new BluePipeline();
-                camera.setPipeline(bluePipeline);
-                break;
-        }
+
+        // manually switch between these two to test them
+        redPipeline = new RedPipeline();
+        camera.setPipeline(redPipeline);
+
+//        bluePipeline = new BluePipeline();
+//        camera.setPipeline(bluePipeline);
+
 
         camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
         {

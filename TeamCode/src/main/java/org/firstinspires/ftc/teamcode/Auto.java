@@ -5,6 +5,7 @@ import android.util.Pair;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.sun.source.tree.WhileLoopTree;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.openftc.easyopencv.OpenCvCamera;
@@ -38,7 +39,8 @@ public class Auto extends LinearOpMode {
     // left or right in the parking area from the robots perspective 
     private enum ParkingDirection {
         left,
-        right;
+        right,
+        DEFAULT
     }
 
     // where the robot itself is
@@ -55,12 +57,15 @@ public class Auto extends LinearOpMode {
         hw.init(hardwareMap);
         hw.setMotorsToZero();
         hw.gyro.resetYaw();
-        clampDownClaws();
-
-        // ARM init double checking, especially for auto
-        hw.clawArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        hw.clawArm.setTargetPosition(0);
-        hw.clawArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        /**
+         * TODO: UNCOMMENT CODE AFTER AMR IS FIXED
+         */
+//        clampDownClaws();
+//
+//        // ARM init double checking, especially for auto
+//        hw.clawArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+//        hw.clawArm.setTargetPosition(0);
+//        hw.clawArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         resetEncoders();
 
         Pair<ParkingMode, ParkingDirection> autoMode;
@@ -103,29 +108,32 @@ public class Auto extends LinearOpMode {
             }
         });
 
-        telemetry.addData("Prop position: ", redPipeline == null ? bluePipeline.getPropPos() : redPipeline.getPropPos());
 
-        hw.clawArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        hw.clawArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        /**
+         * TODO: UNCOMMENT CODE WHEN ARM IS FIXED
+         */
+//        hw.clawArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+//        hw.clawArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+//
+//        hw.clawArm.setTargetPosition(hw.CLAW_ARM_BACK_POSITION);
+//        hw.clawArm.setPower(-DEFAULT_POWER);
+//        while (hw.clawArm.getCurrentPosition() > hw.CLAW_ARM_BACK_POSITION);
+//        hw.clawArm.setPower(0);
 
-        hw.clawArm.setTargetPosition(hw.CLAW_ARM_BACK_POSITION);
-        hw.clawArm.setPower(-DEFAULT_POWER);
-        while (hw.clawArm.getCurrentPosition() > hw.CLAW_ARM_BACK_POSITION);
-        hw.clawArm.setPower(0);
+        while(opModeInInit())
+            telemetry.addData("Prop position: ", redPipeline == null ? bluePipeline.getPropPos() : redPipeline.getPropPos());
 
         waitForStart();
 
         // Return to down position
-        hw.clawArm.setTargetPosition(0);
-        hw.clawArm.setPower(DEFAULT_POWER);
-        while (hw.clawArm.getCurrentPosition() < 0);
-        hw.clawArm.setPower(DEFAULT_POWER);
+//        hw.clawArm.setTargetPosition(0);
+//        hw.clawArm.setPower(DEFAULT_POWER);
+//        while (hw.clawArm.getCurrentPosition() < 0);
+//        hw.clawArm.setPower(DEFAULT_POWER);
+
 
         drive(DISTANCE_TO_SPIKE_MARK, DEFAULT_POWER);
-        if(autoMode == null) {
-            while (opModeIsActive())
-                defaultAutoBackToWall();
-        }
+
 
         //  Doesn't run if autoMode is default/ null, IDE doesn't recognize but the while loop is infinite
         //  for the course of when the program will be run so all of Auto
@@ -150,8 +158,9 @@ public class Auto extends LinearOpMode {
                     autoRR(parking);
                     break;
 
+                case DEFAULT:
                 default:
-                    telemetry.addData("ERROR: ", "MODE NOT FOUND");
+                    telemetry.addData("ERROR OR DEFAULT PICKED: ", "MODE NOT FOUND OR DEFAULT PICKED");
                     telemetry.update();
                     defaultAutoBackToWall();
                     break;
@@ -357,7 +366,7 @@ public class Auto extends LinearOpMode {
         if(defaultYN.equals("Y")){
             telemetry.addData("Starting", "");
             telemetry.update();
-            return null;
+            return new Pair<>(ParkingMode.DEFAULT, ParkingDirection.DEFAULT);
         }
         telemetry.addData("Enter auto mode: ",
                 "\n - BlueRight: [dpad left]\n" +

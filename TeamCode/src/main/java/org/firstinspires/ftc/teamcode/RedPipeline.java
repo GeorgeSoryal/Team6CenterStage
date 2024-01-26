@@ -3,14 +3,15 @@ package org.firstinspires.ftc.teamcode;
 import org.opencv.core.Core;
 import org.opencv.core.CvException;
 import org.opencv.core.Mat;
+import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 import org.openftc.easyopencv.OpenCvPipeline;
 
 public class RedPipeline extends OpenCvPipeline {
-    Mat main = new Mat();
-    Mat output = new Mat();
+//    Mat main = new Mat();
+//    Mat output = new Mat();
     Mat leftCrop;
     Mat middleCrop;
     Mat rightCrop;
@@ -20,7 +21,7 @@ public class RedPipeline extends OpenCvPipeline {
 
     @Override
     public Mat processFrame(Mat input) throws CvException {
-        Imgproc.cvtColor(input, main, Imgproc.COLOR_RGB2HSV);
+        Imgproc.cvtColor(input, input, Imgproc.COLOR_RGB2HSV);
 
         Rect leftRect = new Rect(0,0,(640 / 3),360);
         Rect middleRect = new Rect((640 / 3), 0, (640 / 3), 360);
@@ -51,6 +52,11 @@ public class RedPipeline extends OpenCvPipeline {
             propPos = PropPosition.Right;
         else
             propPos = PropPosition.Middle;
+
+
+        Imgproc.rectangle(input, new Point(0,0), new Point(640 / 3, 360), new Scalar(255,0,0), 5);
+        Imgproc.rectangle(input, new Point(640 / 3,0), new Point((640 / 3) * 2, 360), new Scalar(255,0,0), 5);
+        Imgproc.rectangle(input, new Point((640 / 3) * 2,0), new Point(640, 360), new Scalar(255,0,0), 5);
 
         return input;
     }

@@ -96,36 +96,40 @@ public class Hardware {
         } finally {
             opMode.telemetry.update();
         }
-        try { //clawArm
-            clawArm = hardwareMap.get(DcMotor.class, "armClaw");
-            clawArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-            clawArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            clawArm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            clawArm.setPower(0);
-        } catch(Exception e){
-            opMode.telemetry.addData("clawArm: ", "Error");
-        }
 
-        try { //claw servo 1
-            clawLeft = hardwareMap.get(Servo.class, "claw1"); // port 0
-            clawLeft.setPosition(0.4);
-        } catch (Exception e){
-            opMode.telemetry.addData("clawLeft: ", "Error");
-        } finally {
-            opMode.telemetry.update();
-        }
+        /**
+         * TODO uncomment when arm is fixed
+         */
+//        try { //clawArm
+//            clawArm = hardwareMap.get(DcMotor.class, "armClaw");
+//            clawArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+//            clawArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+//            clawArm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+//            clawArm.setPower(0);
+//        } catch(Exception e){
+//            opMode.telemetry.addData("clawArm: ", "Error");
+//        }
 
-        try { //claw servo 2
-            clawRight = hardwareMap.get(Servo.class, "claw2"); // port 1, on the right relative to the arm side
-            clawRight.setDirection(Servo.Direction.REVERSE);
-            clawLeft.getController().pwmEnable();
-            clawRight.setPosition(0.4);
-
-        } catch (Exception e){
-            opMode.telemetry.addData("clawRight: ", "Error");
-        } finally {
-            opMode.telemetry.update();
-        }
+//        try { //claw servo 1
+//            clawLeft = hardwareMap.get(Servo.class, "claw1"); // port 0
+//            clawLeft.setPosition(0.4);
+//        } catch (Exception e){
+//            opMode.telemetry.addData("clawLeft: ", "Error");
+//        } finally {
+//            opMode.telemetry.update();
+//        }
+//
+//        try { //claw servo 2
+//            clawRight = hardwareMap.get(Servo.class, "claw2"); // port 1, on the right relative to the arm side
+//            clawRight.setDirection(Servo.Direction.REVERSE);
+//            clawLeft.getController().pwmEnable();
+//            clawRight.setPosition(0.4);
+//
+//        } catch (Exception e){
+//            opMode.telemetry.addData("clawRight: ", "Error");
+//        } finally {
+//            opMode.telemetry.update();
+//        }
 
         try {
             gyro = hardwareMap.get(IMU.class, "imu");
