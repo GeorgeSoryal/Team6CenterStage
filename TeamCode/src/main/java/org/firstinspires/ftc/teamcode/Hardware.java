@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode;
 
-//import com.google.blocks.ftcrobotcontroller.runtime.CRServoAccess;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -9,13 +8,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.vision.VisionProcessor;
-import org.openftc.easyopencv.OpenCvCamera;
-import org.openftc.easyopencv.OpenCvCameraFactory;
-import org.openftc.easyopencv.OpenCvCameraRotation;
-import org.openftc.easyopencv.OpenCvInternalCamera;
 
 public class Hardware {
     static final double TICKS_PER_MOTOR_REV = ((((1+((double)46/17))) * (1+((double)46/11))) * 28);
@@ -187,7 +180,7 @@ public class Hardware {
         opMode.telemetry.addData("\nclawArm position: ", clawArm.getCurrentPosition());
         opMode.telemetry.addData("clawArm target: ", clawArm.getTargetPosition());
 
-        opMode.telemetry.addData("\n Gyro angle: ", getGyroAngle()+180.0);
+        opMode.telemetry.addData("\nGyro angle: ", getGyroAngle()+180.0);
         opMode.telemetry.update();
     }
 

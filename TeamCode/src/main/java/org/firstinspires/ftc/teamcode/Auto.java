@@ -57,8 +57,6 @@ public class Auto extends LinearOpMode {
         hw.gyro.resetYaw();
         clampDownClaws();
 
-        initCamera();
-
         // ARM init double checking, especially for auto
         hw.clawArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         hw.clawArm.setTargetPosition(0);
@@ -67,6 +65,45 @@ public class Auto extends LinearOpMode {
 
         Pair<ParkingMode, ParkingDirection> autoMode;
         autoMode = getAutoMode();   // Can throw InterruptedException
+
+        webcamName = hardwareMap.get(WebcamName.class, "webcam1");
+        cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName()); //USED FOR LIVE PREVIEW
+        camera = OpenCvCameraFactory.getInstance().createWebcam(webcamName, cameraMonitorViewId);
+
+        BluePipeline bluePipeline = null;
+        RedPipeline redPipeline = null;
+        switch(autoMode.first){
+            case RedLeft:
+            case RedRight:
+                redPipeline = new RedPipeline();
+                camera.setPipeline(redPipeline);
+                break;
+            case BlueLeft:
+            case BlueRight:
+                bluePipeline = new BluePipeline();
+                camera.setPipeline(bluePipeline);
+                break;
+        }
+
+        camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
+        {
+            @Override
+            public void onOpened()
+            {
+                // Usually this is where you'll want to start streaming from the camera (see section 4)
+                camera.startStreaming(640,360, OpenCvCameraRotation.UPRIGHT);
+
+            }
+            @Override
+            public void onError(int errorCode)
+            {
+                /*
+                 * This will be called if the camera could not be opened
+                 */
+            }
+        });
+
+        telemetry.addData("Prop position: ", redPipeline == null ? bluePipeline.getPropPos() : redPipeline.getPropPos());
 
         hw.clawArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         hw.clawArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -122,12 +159,22 @@ public class Auto extends LinearOpMode {
         }
     }
 
-    public void initCamera(){
+    public void initCamera(ParkingMode parkingMode){
         webcamName = hardwareMap.get(WebcamName.class, "webcam1");
         cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName()); //USED FOR LIVE PREVIEW
         camera = OpenCvCameraFactory.getInstance().createWebcam(webcamName, cameraMonitorViewId);
 
-        camera.setPipeline(new pipeLine());
+        switch(parkingMode){
+            case RedLeft:
+            case RedRight:
+                camera.setPipeline(new BluePipeline());
+                break;
+            case BlueLeft:
+            case BlueRight:
+                camera.setPipeline(new RedPipeline());
+                break;
+        }
+        //camera.setPipeline(new BluePipeline());
 
         camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
         {

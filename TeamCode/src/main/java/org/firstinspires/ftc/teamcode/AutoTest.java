@@ -57,6 +57,48 @@ public class AutoTest extends LinearOpMode {
         hw.gyro.resetYaw();
         clampDownClaws();
 
+        Pair<Auto.ParkingMode, Auto.ParkingDirection> autoMode;
+        autoMode = getAutoMode();   // Can throw InterruptedException
+
+        webcamName = hardwareMap.get(WebcamName.class, "webcam1");
+        cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName()); //USED FOR LIVE PREVIEW
+        camera = OpenCvCameraFactory.getInstance().createWebcam(webcamName, cameraMonitorViewId);
+
+        BluePipeline bluePipeline = null;
+        RedPipeline redPipeline = null;
+        switch(autoMode.first){
+            case RedLeft:
+            case RedRight:
+                redPipeline = new RedPipeline();
+                camera.setPipeline(redPipeline);
+                break;
+            case BlueLeft:
+            case BlueRight:
+                bluePipeline = new BluePipeline();
+                camera.setPipeline(bluePipeline);
+                break;
+        }
+
+        camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
+        {
+            @Override
+            public void onOpened()
+            {
+                // Usually this is where you'll want to start streaming from the camera (see section 4)
+                camera.startStreaming(640,360, OpenCvCameraRotation.UPRIGHT);
+
+            }
+            @Override
+            public void onError(int errorCode)
+            {
+                /*
+                 * This will be called if the camera could not be opened
+                 */
+            }
+        });
+
+        telemetry.addData("Prop position: ", redPipeline == null ? bluePipeline.getPropPos() : redPipeline.getPropPos());
+
         // ARM init double checking, specially for auto
 //        hw.clawArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 //        hw.clawArm.setTargetPosition(0);
@@ -105,7 +147,8 @@ public class AutoTest extends LinearOpMode {
         cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName()); //USED FOR LIVE PREVIEW
         camera = OpenCvCameraFactory.getInstance().createWebcam(webcamName, cameraMonitorViewId);
 
-        camera.setPipeline(new pipeLine());
+        BluePipeline pipeline = new BluePipeline();
+        camera.setPipeline(pipeline);
 
         camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
         {
