@@ -12,6 +12,8 @@ import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 
+import java.nio.channels.Pipe;
+
 
 /**
  * Strafing: right = negative, left = positive
@@ -57,20 +59,12 @@ public class AutoTest extends LinearOpMode {
         hw.gyro.resetYaw();
         clampDownClaws();
 
-
         webcamName = hardwareMap.get(WebcamName.class, "webcam1");
         cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName()); //USED FOR LIVE PREVIEW
         camera = OpenCvCameraFactory.getInstance().createWebcam(webcamName, cameraMonitorViewId);
 
-        BluePipeline bluePipeline = null;
-        RedPipeline redPipeline = null;
-
-        // manually switch between these two to test them
-        redPipeline = new RedPipeline();
-        camera.setPipeline(redPipeline);
-
-//        bluePipeline = new BluePipeline();
-//        camera.setPipeline(bluePipeline);
+        Pipeline pipeline = new Pipeline();
+        camera.setPipeline(pipeline);
 
 
         camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
@@ -91,7 +85,7 @@ public class AutoTest extends LinearOpMode {
             }
         });
 
-        telemetry.addData("Prop position: ", redPipeline == null ? bluePipeline.getPropPos() : redPipeline.getPropPos());
+        telemetry.addData("Prop position: ", pipeline.getPropPos());
 
         // ARM init double checking, specially for auto
 //        hw.clawArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -125,32 +119,6 @@ public class AutoTest extends LinearOpMode {
         }
     }
 
-    public void initCamera(){
-        webcamName = hardwareMap.get(WebcamName.class, "webcam1");
-        cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName()); //USED FOR LIVE PREVIEW
-        camera = OpenCvCameraFactory.getInstance().createWebcam(webcamName, cameraMonitorViewId);
-
-        BluePipeline pipeline = new BluePipeline();
-        camera.setPipeline(pipeline);
-
-        camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
-        {
-            @Override
-            public void onOpened()
-            {
-                // Usually this is where you'll want to start streaming from the camera (see section 4)
-                camera.startStreaming(640,360, OpenCvCameraRotation.UPRIGHT);
-
-            }
-            @Override
-            public void onError(int errorCode)
-            {
-                /*
-                 * This will be called if the camera could not be opened
-                 */
-            }
-        });
-    }
 
 
     /**
