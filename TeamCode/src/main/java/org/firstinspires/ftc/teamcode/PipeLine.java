@@ -8,9 +8,8 @@ import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 import org.openftc.easyopencv.OpenCvPipeline;
 
-public class Pipeline extends OpenCvPipeline {
+public class PipeLine extends OpenCvPipeline {
     Mat main = new Mat();
-    //    Mat output = new Mat();
     Mat   leftBlueCrop;
     Mat middleBlueCrop;
     Mat  rightBlueCrop;
