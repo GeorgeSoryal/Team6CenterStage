@@ -8,9 +8,9 @@ import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 import org.openftc.easyopencv.OpenCvPipeline;
 
-public class BluePipeline extends OpenCvPipeline {
+public class Pipeline extends OpenCvPipeline {
     Mat main = new Mat();
-//    Mat output = new Mat();
+    //    Mat output = new Mat();
     Mat   leftBlueCrop;
     Mat middleBlueCrop;
     Mat  rightBlueCrop;
@@ -22,7 +22,7 @@ public class BluePipeline extends OpenCvPipeline {
     Mat blueChannel = new Mat();
     Mat redChannel = new Mat();
     private PropPosition propPos;
-    private String propColor = "";
+    private String propColor = "calculating...";
 
     @Override
     public Mat processFrame(Mat input) throws CvException {

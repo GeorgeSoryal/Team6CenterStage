@@ -121,18 +121,7 @@ public class AutoTest extends LinearOpMode {
         boolean hasRun = false;
         while(opModeIsActive() && !hasRun) {
             hasRun = true;
-            //currently: forward then back
-//            hw.clawArm.setTargetPosition();
-//                if (leftMean.val[0] > 150){
-//                    telemetry.addData("CV: ", "left");
-//                    telemetry.update();
-//                } else if(middleMean.val[0] > 150) {
-//                    telemetry.addData("CV: ", "middle");
-//                    telemetry.update();
-//                } else if(rightMean.val[0] > 150){
-//                    telemetry.addData("CV: ", "right");
-//                    telemetry.update();
-//                }
+
         }
     }
 

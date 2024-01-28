@@ -12,6 +12,8 @@ import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 
+import java.nio.channels.Pipe;
+
 
 /**
  * Strafing: right = negative, left = positive
@@ -34,6 +36,7 @@ public class Auto extends LinearOpMode {
     int cameraMonitorViewId = 0;
     WebcamName webcamName = null;
     Hardware hw = new Hardware(this);
+    String teamColor = "";
 
 
     // left or right in the parking area from the robots perspective 
@@ -75,37 +78,19 @@ public class Auto extends LinearOpMode {
         cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName()); //USED FOR LIVE PREVIEW
         camera = OpenCvCameraFactory.getInstance().createWebcam(webcamName, cameraMonitorViewId);
 
-        BluePipeline bluePipeline = null;
-        RedPipeline redPipeline = null;
-        switch(autoMode.first){
-            case RedLeft:
-            case RedRight:
-                redPipeline = new RedPipeline();
-                camera.setPipeline(redPipeline);
-                break;
-            case BlueLeft:
-            case BlueRight:
-                bluePipeline = new BluePipeline();
-                camera.setPipeline(bluePipeline);
-                break;
-        }
+        Pipeline pipeline = new Pipeline();
+        camera.setPipeline(pipeline);
 
         camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
         {
             @Override
             public void onOpened()
             {
-                // Usually this is where you'll want to start streaming from the camera (see section 4)
                 camera.startStreaming(640,360, OpenCvCameraRotation.UPRIGHT);
 
             }
             @Override
-            public void onError(int errorCode)
-            {
-                /*
-                 * This will be called if the camera could not be opened
-                 */
-            }
+            public void onError(int errorCode){};
         });
 
 
@@ -114,33 +99,31 @@ public class Auto extends LinearOpMode {
          */
 //        hw.clawArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 //        hw.clawArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-//
-//        hw.clawArm.setTargetPosition(hw.CLAW_ARM_BACK_POSITION);
-//        hw.clawArm.setPower(-DEFAULT_POWER);
-//        while (hw.clawArm.getCurrentPosition() > hw.CLAW_ARM_BACK_POSITION);
-//        hw.clawArm.setPower(0);
+
+//        moveArmUp();
 
         while(opModeInInit())
-            telemetry.addData("Prop position: ", redPipeline == null ? bluePipeline.getPropPos() : redPipeline.getPropPos());
+            telemetry.addData("Prop position: ", pipeline.getPropPos());
+
 
         waitForStart();
 
         // Return to down position
-//        hw.clawArm.setTargetPosition(0);
-//        hw.clawArm.setPower(DEFAULT_POWER);
-//        while (hw.clawArm.getCurrentPosition() < 0);
-//        hw.clawArm.setPower(DEFAULT_POWER);
+//        moveArmDown();
 
 
-        drive(DISTANCE_TO_SPIKE_MARK, DEFAULT_POWER);
+        //drive(DISTANCE_TO_SPIKE_MARK, DEFAULT_POWER);
 
 
         //  Doesn't run if autoMode is default/ null, IDE doesn't recognize but the while loop is infinite
         //  for the course of when the program will be run so all of Auto
         ParkingDirection parking = autoMode.second;
         boolean hasRun = false;
+
         while(opModeIsActive() && !hasRun) {
+
             hasRun = true;
+            teamColor = pipeline.getPropColor();
             switch (autoMode.first) {
                 case BlueLeft:
                     autoLB(parking);
@@ -158,53 +141,17 @@ public class Auto extends LinearOpMode {
                     autoRR(parking);
                     break;
 
-                case DEFAULT:
                 default:
                     telemetry.addData("ERROR OR DEFAULT PICKED: ", "MODE NOT FOUND OR DEFAULT PICKED");
                     telemetry.update();
-                    defaultAutoBackToWall();
+//                    defaultAutoBackToWall();
+                    telemetry.addData("prop position: ", pipeline.getPropPos());
+                    hasRun = false;
                     break;
                 }
         }
     }
 
-    public void initCamera(ParkingMode parkingMode){
-        webcamName = hardwareMap.get(WebcamName.class, "webcam1");
-        cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName()); //USED FOR LIVE PREVIEW
-        camera = OpenCvCameraFactory.getInstance().createWebcam(webcamName, cameraMonitorViewId);
-
-        switch(parkingMode){
-            case RedLeft:
-            case RedRight:
-                camera.setPipeline(new BluePipeline());
-                break;
-            case BlueLeft:
-            case BlueRight:
-                camera.setPipeline(new RedPipeline());
-                break;
-        }
-        //camera.setPipeline(new BluePipeline());
-
-        camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
-        {
-            @Override
-            public void onOpened()
-            {
-                // Usually this is where you'll want to start streaming from the camera (see section 4)
-                camera.startStreaming(640,360);
-                //camera.startRecordingPipeline();
-//                pipeLine.addTelemetry(telemetry);
-//                hw.camera.setPipeline(pipeLine);
-            }
-            @Override
-            public void onError(int errorCode)
-            {
-                /*
-                 * This will be called if the camera could not be opened
-                 */
-            }
-        });
-    }
 
     public void drive(double inches, double power) {
         resetEncoders();
@@ -358,6 +305,7 @@ public class Auto extends LinearOpMode {
 
         String defaultYN = "";
         ParkingMode parkingMode = null;
+        String robotPosition = "";
 
         telemetry.addData("RUN DEFAULT? Y (left) / N (RIGHT)", "");
         telemetry.update();
@@ -368,17 +316,15 @@ public class Auto extends LinearOpMode {
             telemetry.update();
             return new Pair<>(ParkingMode.DEFAULT, ParkingDirection.DEFAULT);
         }
-        telemetry.addData("Enter auto mode: ",
-                "\n - BlueRight: [dpad left]\n" +
-                        " - BlueLeft: [dpad right]\n" +
-                        " - RedRight: [dpad up]\n" +
-                        " - RedLeft: [dpad down]\n");
+        telemetry.addData("Enter robot position: ",
+                "\n - Left: [dpad left]\n" +
+                        " - Right: [dpad right]\n");
         telemetry.update();
 
-        parkingMode = getInput(new ParkingMode[] {ParkingMode.BlueRight, ParkingMode.BlueLeft,
-                ParkingMode.RedRight, ParkingMode.RedLeft});
+        parkingMode = teamColor.equals("red") ? getInput(new ParkingMode[]{ParkingMode.RedLeft, ParkingMode.RedRight}) :
+                getInput(new ParkingMode[]{ParkingMode.BlueLeft, ParkingMode.BlueRight});
 
-        telemetry.addData("Parking: ",
+        telemetry.addData("Enter Parking Position: ",
                 "\n - Left: [dpad left]" +
                 "\n - Right: [dpad right]");
         telemetry.update();
@@ -428,6 +374,19 @@ public class Auto extends LinearOpMode {
         }
 
         hw.clawArm.setPower(0);
+    }
+
+    public void moveArmUp(){
+        hw.clawArm.setTargetPosition(hw.CLAW_ARM_BACK_POSITION);
+        hw.clawArm.setPower(-DEFAULT_POWER);
+        while (hw.clawArm.getCurrentPosition() > hw.CLAW_ARM_BACK_POSITION);
+        hw.clawArm.setPower(0);
+    }
+    public void moveArmDown(){
+        hw.clawArm.setTargetPosition(0);
+        hw.clawArm.setPower(DEFAULT_POWER);
+        while (hw.clawArm.getCurrentPosition() < 0);
+        hw.clawArm.setPower(DEFAULT_POWER);
     }
 
 
