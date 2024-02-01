@@ -27,8 +27,9 @@ public class Hardware {
     static final double TICKS_PER_MOTOR_REV = ((((1+((double)46/17))) * (1+((double)46/11))) * 28);
     static final double DRIVE_GEAR_REDUCTION = 1.0;
     static final double WHEEL_DIAMETER_INCHES = 3.78;
-    static final double TICKS_PER_INCH = (TICKS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) / (WHEEL_DIAMETER_INCHES * 3.1415);
-    public final int CLAW_ARM_UP_POSITION = -2238;
+//    static final double TICKS_PER_INCH = (TICKS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) / (WHEEL_DIAMETER_INCHES * 3.1415);
+    public final int CLAW_ARM_UP_POSITION = 2238;
+    public final int CLAW_ARM_DANGER_POSITION = 30;
     public final int CLAW_ARM_DOWN_POSITION = 50;
     public DcMotor frontLeft = null;
     public DcMotor frontRight = null;
@@ -40,11 +41,11 @@ public class Hardware {
     public Servo clawMove = null;
 
 
-    public final double SERVO_LEFT_OPEN_POSITION = 0.322;//0.417;//0.317; //+ SERVO_OFFSET;//0.97 - 0.11 - 0.12 - 0.07;
-    public final double SERVO_RIGHT_OPEN_POSITION = 0.217;//0.465;//0.565; //0.97 - 0.182 +0.05; //claw2 = more movement
+    public final double SERVO_LEFT_OPEN_POSITION = 0.322;
+    public final double SERVO_RIGHT_OPEN_POSITION = 0.217;
     //close
-    public final double SERVO_LEFT_CLOSED_POSITION =  0.211;///0.718;//0.88; //+ SERVO_OFFSET;//SERVO_1_OPEN_POSITION - 0.2;//0.94 - (0.13 + 0.215) - 0.15;
-    public final double SERVO_RIGHT_CLOSED_POSITION = 0.35;//0.730;//0.275; //SERVO_2_OPEN_POSITION - 0.2;//0.94- (0.18 + 0.190) ;
+    public final double SERVO_LEFT_CLOSED_POSITION =  0.211;
+    public final double SERVO_RIGHT_CLOSED_POSITION = 0.35;
     public final double SERVO_MIDDLE_LEVEL_POSITION = 0.59;
     public  final  double SERVO_MIDDLE_TILTED_POSITION = 0.4;
 
@@ -101,6 +102,7 @@ public class Hardware {
         try { //slideArm
             slideArm = hardwareMap.get(DcMotor.class, "armClaw");
             slideArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            slideArm.setDirection(DcMotorSimple.Direction.REVERSE);  // Positive is up now, easier
             slideArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             slideArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             slideArm.setPower(0);
@@ -124,8 +126,6 @@ public class Hardware {
 
         try { //claw servo 2
             clawRight = hardwareMap.get(Servo.class, "rightServo"); // port 1, on the right relative to the arm side
-//            clawRight.setDirection(Servo.Direction.REVERSE);
-            //clawLeft.getController().pwmEnable();
             clawRight.setPosition(SERVO_RIGHT_OPEN_POSITION);
 
         } catch (Exception e){
@@ -162,6 +162,11 @@ public class Hardware {
         backLeft.setPower(0);
         backRight.setPower(0);
     }
+
+    /**
+     * Needs teleop or auto class to update telemetry for it to ensure that those classes can also add
+     *  to the telemetry before the feedback is pushed to the driver station.
+     */
     public void telemetryHardware(){
         opMode.telemetry.addData("FrontLeftPower: ", frontLeft.getPower());
         opMode.telemetry.addData("FrontRightPower: ", frontRight.getPower());
@@ -174,7 +179,7 @@ public class Hardware {
         opMode.telemetry.addData("slideArm target: ", slideArm.getTargetPosition());
 
         opMode.telemetry.addData("\n Gyro angle: ", getGyroAngle()+180.0);
-        opMode.telemetry.update();
+//        opMode.telemetry.update();
     }
 
     public double getGyroAngle(){

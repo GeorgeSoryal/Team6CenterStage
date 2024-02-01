@@ -4,12 +4,10 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
-import org.openftc.easyopencv.OpenCvCamera;
-import org.openftc.easyopencv.OpenCvCameraRotation;
-
-
 @TeleOp(name="TeleOpFR")
 public class TeleOpMain extends LinearOpMode {
+    final double SLIDE_ARM_SLOW_SPEED = 0.15;
+    final double SLIDE_ARM_SPEED = 0.6;
 
 
     @Override
@@ -17,43 +15,21 @@ public class TeleOpMain extends LinearOpMode {
         Hardware hw = new Hardware(this);
         hw.init(hardwareMap);
 
+        double roundedClawPosition;
+        int armTargetPosition;
+
         boolean isAPressed = false;
         boolean isBPressed = false;
-        boolean isClawOpened = true;
-
-        //arm values
-        final double armDown = 0;
-        final double armUp = -900;
 
         telemetry.addData("TeleOp: ", "Ready for start, Initialized");
         telemetry.update();
 
         waitForStart();
 
-
-        //hw.camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
-//        {
-//            @Override
-//            public void onOpened()
-//            {
-//                // Usually this is where you'll want to start streaming from the camera (see section 4)
-//                //hw.camera.startStreaming(1280,720, OpenCvCameraRotation.UPRIGHT);
-//                //pipeLine.addTelemetry(telemetry);
-//                //hw.camera.setPipeline(pipeLine);
-//            }
-//            @Override
-//            public void onError(int errorCode)
-//            {
-//                /*
-//                 * This will be called if the camera could not be opened
-//                 */
-//            }
-//        });
-
-        telemetry.update();
-
         hw.setMotorsToZero();
         while (opModeIsActive()) {
+            armTargetPosition = (int) (hw.slideArm.getCurrentPosition() - (gamepad2.left_stick_y * (hw.CLAW_ARM_UP_POSITION - hw.CLAW_ARM_DOWN_POSITION)));
+
             double drive = -gamepad1.left_stick_y;
             double turn = gamepad1.right_stick_x;
             double strafe = gamepad1.left_stick_x;
@@ -66,34 +42,30 @@ public class TeleOpMain extends LinearOpMode {
             hw.backLeft.setPower(((drive - turn + strafe) / maxPower));
 
 
+            hw.slideArm.setTargetPosition(armTargetPosition);
+
+            if(armTargetPosition < hw.CLAW_ARM_DANGER_POSITION)
+                hw.slideArm.setPower(0);
+//            else if(armTargetPosition < hw.CLAW_ARM_DOWN_POSITION)
+//                hw.slideArm.setPower(SLIDE_ARM_SLOW_SPEED);
+            hw.slideArm.setPower(linearSlideSpeedCurve(armTargetPosition));
+//            else
+//                hw.slideArm.setPower(SLIDE_ARM_SPEED);
+
             if(gamepad2.a){ // open/closes claw
-                double roundedClawPosition = Math.round((hw.clawLeft.getPosition() * 1000)) / 1000.0;
+                roundedClawPosition = Math.round((hw.clawRight.getPosition() * 1000)) / 1000.0;
+                telemetry.update();
                 if(roundedClawPosition == hw.SERVO_RIGHT_OPEN_POSITION && !isAPressed){
                     hw.clawLeft.setPosition(hw.SERVO_LEFT_CLOSED_POSITION);
                     hw.clawRight.setPosition(hw.SERVO_RIGHT_CLOSED_POSITION);
-                }else if(!isAPressed){
+                } else if(!isAPressed){
                     hw.clawLeft.setPosition(hw.SERVO_LEFT_OPEN_POSITION);
                     hw.clawRight.setPosition(hw.SERVO_RIGHT_OPEN_POSITION);
                 }
-
                 isAPressed = true;
             }else{
                 isAPressed = false;
             }
-
-//            if(gamepad2.a && !isAPressed){ // open/closes claw
-//                //double roundedClawPosition = Math.round((hw.clawLeft.getPosition() * 1000)) / 1000.0;
-////                if(hw.c == hw.SERVO_RIGHT_OPEN_POSITION){
-//
-//                hw.clawLeft.setPosition(hw.SERVO_LEFT_CLOSED_POSITION);
-//                hw.clawRight.setPosition(hw.SERVO_RIGHT_CLOSED_POSITION);
-//                isAPressed = true;
-//            }else {
-//                hw.clawLeft.setPosition(hw.SERVO_LEFT_OPEN_POSITION);
-//                hw.clawRight.setPosition(hw.SERVO_RIGHT_OPEN_POSITION);
-//                isAPressed = false;
-//            }
-
 
 
             if(gamepad2.left_stick_y == 0){
@@ -105,8 +77,9 @@ public class TeleOpMain extends LinearOpMode {
                 hw.slideArm.setPower(gamepad2.left_stick_y / 2);
             }
 
+
             if (gamepad2.b){ // tilts claw
-                double roundedClawPosition = Math.round((hw.clawMove.getPosition() * 1000)) / 1000.0;
+                roundedClawPosition = Math.round((hw.clawMove.getPosition() * 1000)) / 1000.0;
                 if(roundedClawPosition == hw.SERVO_MIDDLE_LEVEL_POSITION && !isBPressed){
                     hw.clawMove.setPosition(hw.SERVO_MIDDLE_TILTED_POSITION);
                 } else if (!isBPressed){
@@ -118,22 +91,26 @@ public class TeleOpMain extends LinearOpMode {
                 isBPressed = false;
             }
 
-            if(gamepad1.right_bumper){
+            if(gamepad1.right_bumper){  // emergency button
                 hw.slideArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                hw.slideArm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                hw.slideArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             }
-
 
             hw.telemetryHardware();
 
-
             telemetry.update();
+
             //cycle every 10 milliseconds, to prevent memory death --> 100 cycles/s
             sleep(10);
         }
 
         // sets all to 0 power
         hw.setMotorsToZero();
+    }
+
+    private int linearSlideSpeedCurve(int targetPosition) {
+        return (int) (0.258788 * Math.log10(0.0416733 * targetPosition)); // speed, generated with wolfram alpha, hits
+        // and uses the danger encoder position values
     }
 
 }
