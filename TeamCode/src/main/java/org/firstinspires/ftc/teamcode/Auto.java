@@ -58,18 +58,18 @@ public class Auto extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         hw.init(hardwareMap);
-        hw.setMotorsToZero();
-        hw.gyro.resetYaw();
+        //hw.setMotorsToZero();
+        //hw.gyro.resetYaw();
         /**
          * TODO: UNCOMMENT CODE AFTER AMR IS FIXED
          */
 //        clampDownClaws();
 //
 //        // ARM init double checking, especially for auto
-//        hw.clawArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-//        hw.clawArm.setTargetPosition(0);
-//        hw.clawArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        resetEncoders();
+//        hw.slideArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+//        hw.slideArm.setTargetPosition(0);
+//        hw.slideArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+       // resetEncoders();
 
         Pair<ParkingMode, ParkingDirection> autoMode;
         autoMode = getAutoMode();   // Can throw InterruptedException
@@ -97,8 +97,8 @@ public class Auto extends LinearOpMode {
         /**
          * TODO: UNCOMMENT CODE WHEN ARM IS FIXED
          */
-//        hw.clawArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-//        hw.clawArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+//        hw.slideArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+//        hw.slideArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
 //        moveArmUp();
 
@@ -123,7 +123,6 @@ public class Auto extends LinearOpMode {
         while(opModeIsActive() && !hasRun) {
 
             hasRun = true;
-            teamColor = pipeline.getPropColor();
             switch (autoMode.first) {
                 case BlueLeft:
                     autoLB(parking);
@@ -146,6 +145,7 @@ public class Auto extends LinearOpMode {
                     telemetry.update();
 //                    defaultAutoBackToWall();
                     telemetry.addData("prop position: ", pipeline.getPropPos());
+                    telemetry.addData("pipeline info: ", pipeline.toString());
                     hasRun = false;
                     break;
                 }
@@ -273,13 +273,13 @@ public class Auto extends LinearOpMode {
     }
 
     private void clampDownClaws(){
-        hw.clawLeft.setPosition(hw.SERVO_1_CLOSED_POSITION);
-        hw.clawRight.setPosition(hw.SERVO_2_CLOSED_POSITION);
+        hw.clawLeft.setPosition(hw.SERVO_LEFT_CLOSED_POSITION);
+        hw.clawRight.setPosition(hw.SERVO_RIGHT_CLOSED_POSITION);
     }
 
     private void clampOpenClaws(){
-        hw.clawLeft.setPosition(hw.SERVO_1_OPEN_POSITION);
-        hw.clawRight.setPosition(hw.SERVO_2_OPEN_POSITION);
+        hw.clawLeft.setPosition(hw.SERVO_LEFT_OPEN_POSITION);
+        hw.clawRight.setPosition(hw.SERVO_RIGHT_OPEN_POSITION);
     }
 
     /**
@@ -297,11 +297,17 @@ public class Auto extends LinearOpMode {
         hw.backRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
+    public void accelerateArm(double power){
+        for(int i = 0; i < 10; i++) {
+
+        }
+    }
+
     /**
      * @return Pair: first = mode, second = parking
      **/
     public Pair<ParkingMode, ParkingDirection> getAutoMode() throws InterruptedException {
-        hw.clawArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+//        hw.slideArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
         String defaultYN = "";
         ParkingMode parkingMode = null;
@@ -321,8 +327,11 @@ public class Auto extends LinearOpMode {
                         " - Right: [dpad right]\n");
         telemetry.update();
 
-        parkingMode = teamColor.equals("red") ? getInput(new ParkingMode[]{ParkingMode.RedLeft, ParkingMode.RedRight}) :
-                getInput(new ParkingMode[]{ParkingMode.BlueLeft, ParkingMode.BlueRight});
+        parkingMode = getInput(new ParkingMode[]{
+                ParkingMode.RedLeft,
+                ParkingMode.RedRight,
+                ParkingMode.BlueLeft,
+                ParkingMode.BlueRight});
 
         telemetry.addData("Enter Parking Position: ",
                 "\n - Left: [dpad left]" +
@@ -364,29 +373,29 @@ public class Auto extends LinearOpMode {
     }
 
     public void moveArm(double targetPosition, double power){
-        hw.clawArm.setTargetPosition((int)targetPosition);
-        if(targetPosition > hw.clawArm.getCurrentPosition()){
-            hw.clawArm.setPower(power);
-            while(hw.clawArm.getCurrentPosition() < targetPosition && opModeIsActive());
+        hw.slideArm.setTargetPosition((int)targetPosition);
+        if(targetPosition > hw.slideArm.getCurrentPosition()){
+            hw.slideArm.setPower(power);
+            while(hw.slideArm.getCurrentPosition() < targetPosition && opModeIsActive());
         } else {
-            hw.clawArm.setPower(-power);
-            while(hw.clawArm.getCurrentPosition() > targetPosition && opModeIsActive());
+            hw.slideArm.setPower(-power);
+            while(hw.slideArm.getCurrentPosition() > targetPosition && opModeIsActive());
         }
 
-        hw.clawArm.setPower(0);
+        hw.slideArm.setPower(0);
     }
 
     public void moveArmUp(){
-        hw.clawArm.setTargetPosition(hw.CLAW_ARM_BACK_POSITION);
-        hw.clawArm.setPower(-DEFAULT_POWER);
-        while (hw.clawArm.getCurrentPosition() > hw.CLAW_ARM_BACK_POSITION);
-        hw.clawArm.setPower(0);
+        hw.slideArm.setTargetPosition(hw.CLAW_ARM_UP_POSITION);
+        hw.slideArm.setPower(-DEFAULT_POWER);
+        while (hw.slideArm.getCurrentPosition() > hw.CLAW_ARM_DOWN_POSITION);
+        hw.slideArm.setPower(0);
     }
     public void moveArmDown(){
-        hw.clawArm.setTargetPosition(0);
-        hw.clawArm.setPower(DEFAULT_POWER);
-        while (hw.clawArm.getCurrentPosition() < 0);
-        hw.clawArm.setPower(DEFAULT_POWER);
+        hw.slideArm.setTargetPosition(0);
+        hw.slideArm.setPower(DEFAULT_POWER);
+        while (hw.slideArm.getCurrentPosition() < 0);
+        hw.slideArm.setPower(DEFAULT_POWER);
     }
 
 
@@ -397,7 +406,7 @@ public class Auto extends LinearOpMode {
                 // forward then strafe
                 drive(45 - DISTANCE_TO_SPIKE_MARK, DEFAULT_POWER);
                 drive(-7, -DEFAULT_POWER);
-                moveArm(0, DEFAULT_POWER);
+//                moveArm(0, DEFAULT_POWER);
                 strafe(-18, -DEFAULT_POWER);
                 drive(28, DEFAULT_POWER);
                 strafe(-28, -DEFAULT_POWER);
@@ -421,7 +430,7 @@ public class Auto extends LinearOpMode {
             case left: //done parking
                 drive(DISTANCE_TO_SPIKE_MARK, DEFAULT_POWER);
                 drive(-25, -DEFAULT_POWER);
-                moveArm(0, DEFAULT_POWER);
+//                moveArm(0, DEFAULT_POWER);
                 turnByGyro(90, DEFAULT_POWER);
                 drive(80, DEFAULT_POWER);
                 break;
@@ -434,7 +443,7 @@ public class Auto extends LinearOpMode {
             case right: /** test it **/
                 drive(DISTANCE_TO_SPIKE_MARK, DEFAULT_POWER);
                 drive(-25, -DEFAULT_POWER);
-                moveArm(0, DEFAULT_POWER);
+//                moveArm(0, DEFAULT_POWER);
                 turnByGyro(90, DEFAULT_POWER);
                 drive(-80, -DEFAULT_POWER);
                 break;

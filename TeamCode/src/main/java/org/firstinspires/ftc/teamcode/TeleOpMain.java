@@ -18,6 +18,8 @@ public class TeleOpMain extends LinearOpMode {
         hw.init(hardwareMap);
 
         boolean isAPressed = false;
+        boolean isBPressed = false;
+        boolean isClawOpened = true;
 
         //arm values
         final double armDown = 0;
@@ -64,14 +66,14 @@ public class TeleOpMain extends LinearOpMode {
             hw.backLeft.setPower(((drive - turn + strafe) / maxPower));
 
 
-            if(gamepad2.a){
+            if(gamepad2.a){ // open/closes claw
                 double roundedClawPosition = Math.round((hw.clawLeft.getPosition() * 1000)) / 1000.0;
-                if(roundedClawPosition == hw.SERVO_1_OPEN_POSITION && !isAPressed){
-                    hw.clawLeft.setPosition(hw.SERVO_1_CLOSED_POSITION);
-                    hw.clawRight.setPosition(hw.SERVO_1_CLOSED_POSITION);
+                if(roundedClawPosition == hw.SERVO_RIGHT_OPEN_POSITION && !isAPressed){
+                    hw.clawLeft.setPosition(hw.SERVO_LEFT_CLOSED_POSITION);
+                    hw.clawRight.setPosition(hw.SERVO_RIGHT_CLOSED_POSITION);
                 }else if(!isAPressed){
-                    hw.clawLeft.setPosition(hw.SERVO_1_OPEN_POSITION);
-                    hw.clawRight.setPosition(hw.SERVO_2_OPEN_POSITION);
+                    hw.clawLeft.setPosition(hw.SERVO_LEFT_OPEN_POSITION);
+                    hw.clawRight.setPosition(hw.SERVO_RIGHT_OPEN_POSITION);
                 }
 
                 isAPressed = true;
@@ -79,27 +81,48 @@ public class TeleOpMain extends LinearOpMode {
                 isAPressed = false;
             }
 
+//            if(gamepad2.a && !isAPressed){ // open/closes claw
+//                //double roundedClawPosition = Math.round((hw.clawLeft.getPosition() * 1000)) / 1000.0;
+////                if(hw.c == hw.SERVO_RIGHT_OPEN_POSITION){
+//
+//                hw.clawLeft.setPosition(hw.SERVO_LEFT_CLOSED_POSITION);
+//                hw.clawRight.setPosition(hw.SERVO_RIGHT_CLOSED_POSITION);
+//                isAPressed = true;
+//            }else {
+//                hw.clawLeft.setPosition(hw.SERVO_LEFT_OPEN_POSITION);
+//                hw.clawRight.setPosition(hw.SERVO_RIGHT_OPEN_POSITION);
+//                isAPressed = false;
+//            }
+
+
 
             if(gamepad2.left_stick_y == 0){
-                hw.clawArm.setPower(0);
-            }else{
-                hw.clawArm.setPower(gamepad2.left_stick_y);
+                hw.slideArm.setPower(0);
+            }else if(hw.slideArm.getCurrentPosition() < hw.CLAW_ARM_UP_POSITION){
+                if(hw.slideArm.getCurrentPosition() < 50){
+                    hw.slideArm.setPower(gamepad2.left_stick_y / 3.5);
+                }
+                hw.slideArm.setPower(gamepad2.left_stick_y / 2);
+            }
+
+            if (gamepad2.b){ // tilts claw
+                double roundedClawPosition = Math.round((hw.clawMove.getPosition() * 1000)) / 1000.0;
+                if(roundedClawPosition == hw.SERVO_MIDDLE_LEVEL_POSITION && !isBPressed){
+                    hw.clawMove.setPosition(hw.SERVO_MIDDLE_TILTED_POSITION);
+                } else if (!isBPressed){
+                    hw.clawMove.setPosition(hw.SERVO_MIDDLE_LEVEL_POSITION);
+                }
+
+                isBPressed = true;
+            } else {
+                isBPressed = false;
             }
 
             if(gamepad1.right_bumper){
-                hw.clawArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                hw.clawArm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                hw.slideArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                hw.slideArm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             }
 
-//            if(gamepad1.right_trigger > 0.5){
-//                if(hw.clawArm.getCurrentPosition() < 0){
-//                    hw.clawArm.setPower(0.8);
-//                    while(hw.clawArm.getCurrentPosition() < 0);
-//                } else {
-//                    hw.clawArm.setPower(-0.8);
-//                    while(hw.clawArm.getCurrentPosition() > 0);
-//                }
-//            }
 
             hw.telemetryHardware();
 

@@ -53,9 +53,9 @@ public class AutoTestCases extends LinearOpMode {
         clampDownClaws();
 
         // ARM init double checking, especially for auto
-        hw.clawArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        hw.clawArm.setTargetPosition(0);
-        hw.clawArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        hw.slideArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        hw.slideArm.setTargetPosition(0);
+        hw.slideArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         resetEncoders();
 
         waitForStart();
@@ -183,13 +183,13 @@ public class AutoTestCases extends LinearOpMode {
     }
 
     private void clampDownClaws(){
-        hw.clawLeft.setPosition(hw.SERVO_1_CLOSED_POSITION);
-        hw.clawRight.setPosition(hw.SERVO_2_CLOSED_POSITION);
+        hw.clawLeft.setPosition(hw.SERVO_LEFT_CLOSED_POSITION);
+        hw.clawRight.setPosition(hw.SERVO_RIGHT_CLOSED_POSITION);
     }
 
     private void clampOpenClaws(){
-        hw.clawLeft.setPosition(hw.SERVO_1_OPEN_POSITION);
-        hw.clawRight.setPosition(hw.SERVO_2_OPEN_POSITION);
+        hw.clawLeft.setPosition(hw.SERVO_LEFT_OPEN_POSITION);
+        hw.clawRight.setPosition(hw.SERVO_RIGHT_OPEN_POSITION);
     }
 
     /**
@@ -211,7 +211,7 @@ public class AutoTestCases extends LinearOpMode {
      * @return Pair: first = mode, second = parking
      **/
     public Pair<ParkingMode, ParkingDirection> getAutoMode() throws Exception {
-        hw.clawArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        hw.slideArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
         String mode = "";
         String defaultYN = "";
@@ -263,16 +263,16 @@ public class AutoTestCases extends LinearOpMode {
     }
 
     public void moveArm(double targetPosition, double power){
-        hw.clawArm.setTargetPosition((int)targetPosition);
-        if(targetPosition > hw.clawArm.getCurrentPosition()){
-            hw.clawArm.setPower(power);
-            while(hw.clawArm.getCurrentPosition() < targetPosition && opModeIsActive());
+        hw.slideArm.setTargetPosition((int)targetPosition);
+        if(targetPosition > hw.slideArm.getCurrentPosition()){
+            hw.slideArm.setPower(power);
+            while(hw.slideArm.getCurrentPosition() < targetPosition && opModeIsActive());
         } else {
-            hw.clawArm.setPower(-power);
-            while(hw.clawArm.getCurrentPosition() > targetPosition && opModeIsActive());
+            hw.slideArm.setPower(-power);
+            while(hw.slideArm.getCurrentPosition() > targetPosition && opModeIsActive());
         }
 
-        hw.clawArm.setPower(0);
+        hw.slideArm.setPower(0);
     }
 
 

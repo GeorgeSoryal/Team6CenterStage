@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
 //import com.google.blocks.ftcrobotcontroller.runtime.CRServoAccess;
+
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -17,35 +18,36 @@ import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvInternalCamera;
 
+/**
+ * middle servo port: 0
+ * left servo port: 2
+ * right servo poprt: 4
+ */
 public class Hardware {
     static final double TICKS_PER_MOTOR_REV = ((((1+((double)46/17))) * (1+((double)46/11))) * 28);
     static final double DRIVE_GEAR_REDUCTION = 1.0;
     static final double WHEEL_DIAMETER_INCHES = 3.78;
     static final double TICKS_PER_INCH = (TICKS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) / (WHEEL_DIAMETER_INCHES * 3.1415);
-    final private double DRIVE_SPEED = 0.6;
-//    final private double TURN_SPEED = 0.5;
-    public final int CLAW_ARM_BACK_POSITION = -1640;
+    public final int CLAW_ARM_UP_POSITION = -2238;
+    public final int CLAW_ARM_DOWN_POSITION = 50;
     public DcMotor frontLeft = null;
     public DcMotor frontRight = null;
     public DcMotor backLeft = null;
     public DcMotor backRight = null;
-    //public Arm arm = new Arm();
-    public DcMotor clawArm = null;
+    public DcMotor slideArm = null;
     public Servo clawLeft = null;
     public Servo clawRight = null;
-//    public VisionProcessor visionProcessor;
-//    OpenCvCamera camera = null;
-//    int cameraMonitorViewId = 0;
-//    WebcamName webcamName = null;
+    public Servo clawMove = null;
 
-    //arm servo values (servo1 = claw right) (servo2 = claw left)
-    //open
-    // public final double SERVO_OFFSET = 0.25;
-    public final double SERVO_1_OPEN_POSITION = 0.417;//0.317; //+ SERVO_OFFSET;//0.97 - 0.11 - 0.12 - 0.07;
-    public final double SERVO_2_OPEN_POSITION = 0.465;//0.565; //0.97 - 0.182 +0.05; //claw2 = more movement
+
+    public final double SERVO_LEFT_OPEN_POSITION = 0.322;//0.417;//0.317; //+ SERVO_OFFSET;//0.97 - 0.11 - 0.12 - 0.07;
+    public final double SERVO_RIGHT_OPEN_POSITION = 0.217;//0.465;//0.565; //0.97 - 0.182 +0.05; //claw2 = more movement
     //close
-    public final double SERVO_1_CLOSED_POSITION =  0.718;//0.88; //+ SERVO_OFFSET;//SERVO_1_OPEN_POSITION - 0.2;//0.94 - (0.13 + 0.215) - 0.15;
-    public final double SERVO_2_CLOSED_POSITION = 0.730;//0.275; //SERVO_2_OPEN_POSITION - 0.2;//0.94- (0.18 + 0.190) ;
+    public final double SERVO_LEFT_CLOSED_POSITION =  0.211;///0.718;//0.88; //+ SERVO_OFFSET;//SERVO_1_OPEN_POSITION - 0.2;//0.94 - (0.13 + 0.215) - 0.15;
+    public final double SERVO_RIGHT_CLOSED_POSITION = 0.35;//0.730;//0.275; //SERVO_2_OPEN_POSITION - 0.2;//0.94- (0.18 + 0.190) ;
+    public final double SERVO_MIDDLE_LEVEL_POSITION = 0.59;
+    public  final  double SERVO_MIDDLE_TILTED_POSITION = 0.4;
+
 //    public AprilTag
     public IMU gyro;
 
@@ -64,8 +66,6 @@ public class Hardware {
             opMode.telemetry.addData("FrontLeftMotor: ", "Initialized");
         } catch (Exception e) {
             opMode.telemetry.addData("FrontLeftMotor: ", "Error");
-        } finally{
-            opMode.telemetry.update();
         }
 
         try {
@@ -76,8 +76,6 @@ public class Hardware {
             opMode.telemetry.addData("FrontRightMotor: ", "Initialized.");
         } catch (Exception e) {
             opMode.telemetry.addData("FrontRightMotor: ", "Error");
-        } finally{
-            opMode.telemetry.update();
         }
 
         try {
@@ -88,8 +86,6 @@ public class Hardware {
             opMode.telemetry.addData("BackRightMotor: ", "Initialized.");
         } catch (Exception e) {
             opMode.telemetry.addData("BackRightMotor: ", "Error");
-        } finally {
-            opMode.telemetry.update();
         }
 
         try {
@@ -100,38 +96,40 @@ public class Hardware {
             opMode.telemetry.addData("BackLeftMotor: ", "Initialized.");
         } catch (Exception e) {
             opMode.telemetry.addData("BackLeftMotor: ", "Error");
-        } finally {
-            opMode.telemetry.update();
         }
-        try { //clawArm
-            clawArm = hardwareMap.get(DcMotor.class, "armClaw");
-            clawArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-            clawArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            clawArm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            clawArm.setPower(0);
+
+        try { //slideArm
+            slideArm = hardwareMap.get(DcMotor.class, "armClaw");
+            slideArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            slideArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            slideArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            slideArm.setPower(0);
         } catch(Exception e){
-            opMode.telemetry.addData("clawArm: ", "Error");
+            opMode.telemetry.addData("slideArm: ", "Error");
+        }
+
+        try{
+            clawMove = hardwareMap.get(Servo.class, "middleServo");
+            clawMove.setPosition(SERVO_MIDDLE_LEVEL_POSITION);
+        } catch (Exception e){
+            opMode.telemetry.addData("middleServo: ", "error");
         }
 
         try { //claw servo 1
-            clawLeft = hardwareMap.get(Servo.class, "claw1"); // port 0
-            clawLeft.setPosition(0.4);
+            clawLeft = hardwareMap.get(Servo.class, "leftServo"); // port 0
+            clawLeft.setPosition(SERVO_LEFT_OPEN_POSITION);
         } catch (Exception e){
             opMode.telemetry.addData("clawLeft: ", "Error");
-        } finally {
-            opMode.telemetry.update();
         }
 
         try { //claw servo 2
-            clawRight = hardwareMap.get(Servo.class, "claw2"); // port 1, on the right relative to the arm side
-            clawRight.setDirection(Servo.Direction.REVERSE);
-            clawLeft.getController().pwmEnable();
-            clawRight.setPosition(0.4);
+            clawRight = hardwareMap.get(Servo.class, "rightServo"); // port 1, on the right relative to the arm side
+//            clawRight.setDirection(Servo.Direction.REVERSE);
+            //clawLeft.getController().pwmEnable();
+            clawRight.setPosition(SERVO_RIGHT_OPEN_POSITION);
 
         } catch (Exception e){
             opMode.telemetry.addData("clawRight: ", "Error");
-        } finally {
-            opMode.telemetry.update();
         }
 
         try {
@@ -146,22 +144,10 @@ public class Hardware {
             opMode.telemetry.update();
         }
 
-        try {
-//            visionPortal = new VisionPortal.Builder().build();
-        } catch (Exception e){
-            opMode.telemetry.addData("Camera Error", "ERROR");
-            opMode.telemetry.update();
-        }
-
-        try {
-        } catch (Exception e){
-            opMode.telemetry.addData("CV camera error", " ERRRR");
-        }
-
         // Have to test this when the drive train is created
-        setMotorsToZero();
+//        setMotorsToZero();
         setAllTargets(0);
-
+//
         backRight.setDirection(DcMotorSimple.Direction.REVERSE);
         frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -184,8 +170,8 @@ public class Hardware {
 
         opMode.telemetry.addData("\nclawLeft position: ", clawLeft.getPosition());
         opMode.telemetry.addData("clawRight position: ", clawRight.getPosition());
-        opMode.telemetry.addData("\nclawArm position: ", clawArm.getCurrentPosition());
-        opMode.telemetry.addData("clawArm target: ", clawArm.getTargetPosition());
+        opMode.telemetry.addData("\nslideArm position: ", slideArm.getCurrentPosition());
+        opMode.telemetry.addData("slideArm target: ", slideArm.getTargetPosition());
 
         opMode.telemetry.addData("\n Gyro angle: ", getGyroAngle()+180.0);
         opMode.telemetry.update();
@@ -206,6 +192,7 @@ public class Hardware {
         frontRight.setTargetPosition(targetPosition);
         backLeft.setTargetPosition(targetPosition);
         backRight.setTargetPosition(targetPosition);
+        slideArm.setTargetPosition(targetPosition);
     }
 
 }
