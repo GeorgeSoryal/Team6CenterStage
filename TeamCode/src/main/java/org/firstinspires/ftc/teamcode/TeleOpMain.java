@@ -16,7 +16,7 @@ public class TeleOpMain extends LinearOpMode {
         hw.init(hardwareMap);
 
         double roundedClawPosition;
-        int armTargetPosition;
+        int armTargetPosition = 0;
 
         boolean isAPressed = false;
         boolean isBPressed = false;
@@ -28,7 +28,7 @@ public class TeleOpMain extends LinearOpMode {
 
         hw.setMotorsToZero();
         while (opModeIsActive()) {
-            armTargetPosition = (int) (hw.slideArm.getCurrentPosition() - (gamepad2.left_stick_y * (hw.CLAW_ARM_UP_POSITION - hw.CLAW_ARM_DOWN_POSITION)));
+//            armTargetPosition = (int) (hw.slideArm.getCurrentPosition() - (gamepad2.left_stick_y * (hw.CLAW_ARM_UP_POSITION - hw.CLAW_ARM_DOWN_POSITION)));
 
             double drive = -gamepad1.left_stick_y;
             double turn = gamepad1.right_stick_x;
@@ -41,14 +41,28 @@ public class TeleOpMain extends LinearOpMode {
             hw.backRight.setPower(((drive + turn - strafe) / maxPower));
             hw.backLeft.setPower(((drive - turn + strafe) / maxPower));
 
-
+            double armPower = 0.8;
+            if(gamepad2.right_bumper) {
+                if (armTargetPosition < hw.CLAW_ARM_UP_POSITION)
+                    armTargetPosition += 20;
+            } else if(gamepad2.left_bumper){
+                if(armTargetPosition > hw.CLAW_ARM_DANGER_POSITION){
+                    armTargetPosition -= 20;
+                    armPower = 0.55;
+                }
+            } else {
+                armTargetPosition = hw.slideArm.getCurrentPosition();
+            }
             hw.slideArm.setTargetPosition(armTargetPosition);
+            hw.slideArm.setPower(armPower);
 
-            if(armTargetPosition < hw.CLAW_ARM_DANGER_POSITION)
-                hw.slideArm.setPower(0);
+//            hw.slideArm.setTargetPosition(armTargetPosition);
+
+//            if(armTargetPosition < hw.CLAW_ARM_DANGER_POSITION)
+//                hw.slideArm.setPower(0);
 //            else if(armTargetPosition < hw.CLAW_ARM_DOWN_POSITION)
 //                hw.slideArm.setPower(SLIDE_ARM_SLOW_SPEED);
-            hw.slideArm.setPower(linearSlideSpeedCurve(armTargetPosition));
+//            hw.slideArm.setPower(/*hw.slideArm.getCurrentPosition() > armTargetPosition ? -0.8 :*/ 0.8); //
 //            else
 //                hw.slideArm.setPower(SLIDE_ARM_SPEED);
 
@@ -66,16 +80,20 @@ public class TeleOpMain extends LinearOpMode {
             }else{
                 isAPressed = false;
             }
+//            if(gamepad2.x) { // open/closes claw
+//                hw.slideArm.setPower(0.8);
+//                hw.slideArm.setTargetPosition(hw.CLAW_ARM_UP_POSITION);
+//            }
 
-
-            if(gamepad2.left_stick_y == 0){
-                hw.slideArm.setPower(0);
-            }else if(hw.slideArm.getCurrentPosition() < hw.CLAW_ARM_UP_POSITION){
-                if(hw.slideArm.getCurrentPosition() < 50){
-                    hw.slideArm.setPower(gamepad2.left_stick_y / 3.5);
-                }
-                hw.slideArm.setPower(gamepad2.left_stick_y / 2);
-            }
+//
+//            if(gamepad2.left_stick_y == 0){
+//                hw.slideArm.setPower(0);
+//            }else if(hw.slideArm.getCurrentPosition() < hw.CLAW_ARM_UP_POSITION){
+//                if(hw.slideArm.getCurrentPosition() < 50){
+//                    hw.slideArm.setPower(gamepad2.left_stick_y / 3.5);
+//                }
+//                hw.slideArm.setPower(gamepad2.left_stick_y / 2);
+//            }
 
 
             if (gamepad2.b){ // tilts claw
@@ -91,10 +109,10 @@ public class TeleOpMain extends LinearOpMode {
                 isBPressed = false;
             }
 
-            if(gamepad1.right_bumper){  // emergency button
-                hw.slideArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                hw.slideArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            }
+//            if(gamepad1.right_bumper){  // emergency button
+//                hw.slideArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+//                hw.slideArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+//            }
 
             hw.telemetryHardware();
 

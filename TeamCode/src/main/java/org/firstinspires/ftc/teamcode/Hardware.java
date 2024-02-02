@@ -28,8 +28,8 @@ public class Hardware {
     static final double DRIVE_GEAR_REDUCTION = 1.0;
     static final double WHEEL_DIAMETER_INCHES = 3.78;
 //    static final double TICKS_PER_INCH = (TICKS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) / (WHEEL_DIAMETER_INCHES * 3.1415);
-    public final int CLAW_ARM_UP_POSITION = 2238;
-    public final int CLAW_ARM_DANGER_POSITION = 30;
+    public final int CLAW_ARM_UP_POSITION = 2290;
+    public final int CLAW_ARM_DANGER_POSITION = 15;
     public final int CLAW_ARM_DOWN_POSITION = 50;
     public DcMotor frontLeft = null;
     public DcMotor frontRight = null;

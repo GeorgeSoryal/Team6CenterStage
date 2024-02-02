@@ -36,7 +36,7 @@ public class Auto extends LinearOpMode {
     int cameraMonitorViewId = 0;
     WebcamName webcamName = null;
     Hardware hw = new Hardware(this);
-    String teamColor = "";
+    PropPosition propPos;
 
 
     // left or right in the parking area from the robots perspective 
@@ -78,7 +78,8 @@ public class Auto extends LinearOpMode {
         cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName()); //USED FOR LIVE PREVIEW
         camera = OpenCvCameraFactory.getInstance().createWebcam(webcamName, cameraMonitorViewId);
 
-        Pipeline pipeline = new Pipeline();
+        Pipeline pipeline = new Pipeline(autoMode.first == ParkingMode.BlueLeft ||
+                                        autoMode.first == ParkingMode.BlueRight);
         camera.setPipeline(pipeline);
 
         camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
@@ -102,10 +103,12 @@ public class Auto extends LinearOpMode {
 
 //        moveArmUp();
 
-        while(opModeInInit())
+        while(opModeInInit()) {
             telemetry.addData("Prop position: ", pipeline.getPropPos());
+            telemetry.update();
+        }
 
-
+        propPos = pipeline.getPropPos();
         waitForStart();
 
         // Return to down position
@@ -121,8 +124,27 @@ public class Auto extends LinearOpMode {
         boolean hasRun = false;
 
         while(opModeIsActive() && !hasRun) {
-
             hasRun = true;
+
+            switch (propPos){
+                case Left:
+                    drive(30, DEFAULT_POWER);
+                    strafe(5, DEFAULT_POWER);
+                    strafe(-5, -DEFAULT_POWER);
+                    break;
+
+                case Middle:
+                    defaultAutoBackToWall();
+                    break;
+
+                case Right:
+                    drive(30, DEFAULT_POWER);
+                    strafe(-5, -DEFAULT_POWER);
+                    strafe(5, DEFAULT_POWER);
+                    break;
+            }
+
+
             switch (autoMode.first) {
                 case BlueLeft:
                     autoLB(parking);
@@ -141,12 +163,8 @@ public class Auto extends LinearOpMode {
                     break;
 
                 default:
-                    telemetry.addData("ERROR OR DEFAULT PICKED: ", "MODE NOT FOUND OR DEFAULT PICKED");
-                    telemetry.update();
-//                    defaultAutoBackToWall();
-                    telemetry.addData("prop position: ", pipeline.getPropPos());
-                    telemetry.addData("pipeline info: ", pipeline.toString());
-                    hasRun = false;
+
+
                     break;
                 }
         }
@@ -323,8 +341,10 @@ public class Auto extends LinearOpMode {
             return new Pair<>(ParkingMode.DEFAULT, ParkingDirection.DEFAULT);
         }
         telemetry.addData("Enter robot position: ",
-                "\n - Left: [dpad left]\n" +
-                        " - Right: [dpad right]\n");
+                "\n - RedLeft: [dpad left]\n" +
+                        " - RedRight: [dpad right]\n" +
+                        " - BlueLeft: [dpad up]\n" +
+                        " - BlueRight: [dpad down]");
         telemetry.update();
 
         parkingMode = getInput(new ParkingMode[]{
@@ -388,7 +408,7 @@ public class Auto extends LinearOpMode {
     public void moveArmUp(){
         hw.slideArm.setTargetPosition(hw.CLAW_ARM_UP_POSITION);
         hw.slideArm.setPower(-DEFAULT_POWER);
-        while (hw.slideArm.getCurrentPosition() > hw.CLAW_ARM_DOWN_POSITION);
+        while (hw.slideArm.getCurrentPosition() > hw.CLAW_ARM_DANGER_POSITION);
         hw.slideArm.setPower(0);
     }
     public void moveArmDown(){
@@ -438,40 +458,47 @@ public class Auto extends LinearOpMode {
     }
 
     public void autoLR(ParkingDirection parking) {
-        // DONE
+        drive(-30, DEFAULT_POWER);
+        turnByEncoder(90, DEFAULT_POWER);
+        //drive(50, DEFAULT_POWER);
         switch (parking) {
             case right: /** test it **/
-                drive(DISTANCE_TO_SPIKE_MARK, DEFAULT_POWER);
-                drive(-25, -DEFAULT_POWER);
-//                moveArm(0, DEFAULT_POWER);
-                turnByGyro(90, DEFAULT_POWER);
-                drive(-80, -DEFAULT_POWER);
+//                drive(DISTANCE_TO_SPIKE_MARK, DEFAULT_POWER);
+//                drive(-25, -DEFAULT_POWER);
+////                moveArm(0, DEFAULT_POWER);
+//                turnByGyro(90, DEFAULT_POWER);
+//                drive(-80, -DEFAULT_POWER);
                 break;
             case left: // done pakeinf
-                drive(DISTANCE_TO_SPIKE_MARK, DEFAULT_POWER);
-                drive(-7, -DEFAULT_POWER);
-                strafe(18, DEFAULT_POWER);
-                drive(35.5, DEFAULT_POWER);
-                strafe(-130, -DEFAULT_POWER);
-                drive(-12, -DEFAULT_POWER);
+//                drive(DISTANCE_TO_SPIKE_MARK, DEFAULT_POWER);
+//                drive(-7, -DEFAULT_POWER);
+//                strafe(18, DEFAULT_POWER);
+//                drive(35.5, DEFAULT_POWER);
+//                strafe(-130, -DEFAULT_POWER);
+//                drive(-12, -DEFAULT_POWER);
                 break;
         }
     }
 
     public void autoRR(ParkingDirection parking) {
+        drive(-20, DEFAULT_POWER);
+        strafe(-25, DEFAULT_POWER);
+        turnByEncoder(90, DEFAULT_POWER);
         switch (parking) {
             case right: // done parking
-                telemetry.addData("right right right", "");
-                telemetry.update();
-                defaultAutoBackToWall();
-                strafe(-46, -DEFAULT_POWER);
+//                telemetry.addData("right right right", "");
+//                telemetry.update();
+//                defaultAutoBackToWall();
+//                strafe(-46, -DEFAULT_POWER);
+
                 break;
             case left: //done parking
-                drive(DISTANCE_TO_SPIKE_MARK, DEFAULT_POWER);
-                drive(-7, -DEFAULT_POWER);
-                strafe(-18, DEFAULT_POWER);
-                drive(29, DEFAULT_POWER);
-                strafe(-30, -DEFAULT_POWER);
+//                drive(DISTANCE_TO_SPIKE_MARK, DEFAULT_POWER);
+//                drive(-7, -DEFAULT_POWER);
+//                strafe(-18, DEFAULT_POWER);
+//                drive(29, DEFAULT_POWER);
+//                strafe(-30, -DEFAULT_POWER);
+
                 break;
 
         }

@@ -8,85 +8,67 @@ import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 import org.openftc.easyopencv.OpenCvPipeline;
 
+import java.nio.channels.Pipe;
+
 public class Pipeline extends OpenCvPipeline {
     Mat main = new Mat();
-    Mat leftCropBlue = new Mat();
-    Mat middleCropBlue = new Mat();
-    Mat rightCropBlue = new Mat();
-
-    Mat leftCropRed = new Mat();
-    Mat middleCropRed = new Mat();
-    Mat  rightCropRed = new Mat();
+    Mat   leftCrop;
+    Mat middleCrop;
+    Mat  rightCrop;
     private PropPosition propPos;
-    double leftMeanRed;
-    double middleMeanRed;
-    double rightMeanRed;
-    double leftMeanBlue;
-    double middleMeanBlue;
-    double rightMeanBlue;
+    private boolean isOnBlueSide;
 
+    public Pipeline(boolean isOnBlueSide){
+        this.isOnBlueSide = isOnBlueSide;
+    }
+
+    public Pipeline(){
+        this.isOnBlueSide = true;
+    }
     @Override
     public Mat processFrame(Mat input) throws CvException {
-//        Imgproc.cvtColor(input, input, Imgproc.COLOR_RGB2HSV);
+        Imgproc.cvtColor(input, input, Imgproc.COLOR_RGB2HSV);
+
+        final double blue_hue_low =   ((double)218 / 360) * 179, sat_low   =  70, val_low   = 50;
+        final double blue_hue_high  =   ((double) 232 / 360) * 179, sat_high  = 255, val_high  = 255;
+        final double red_hue_low = ((double) 340 /360) *179, red_hue_high = ((double) 360 / 360 ) * 179;
+//
+        final Scalar blueLowHSV = new Scalar(blue_hue_low, sat_low, val_low);
+        final Scalar blueHighHSV = new Scalar(blue_hue_high, sat_high, val_high);
+        final Scalar redLowHSV = new Scalar(red_hue_low, sat_low, val_low);
+        final Scalar redHighHSV = new Scalar(red_hue_high, sat_high, val_high);
+//
+        if(isOnBlueSide)
+            Core.inRange(input, blueLowHSV, blueHighHSV, input);
+        else
+            Core.inRange(input, redLowHSV, redHighHSV, input);
 
         Rect leftRect = new Rect(0,100,(640 / 3),260);
         Rect middleRect = new Rect((640 / 3), 100, (640 / 3), 260);
         Rect rightRect = new Rect((640 / 3) * 2,100,(640 / 3),260);
 
-        input = input.submat(new Rect(0,  0, 640 , 360));
+        leftCrop = input.submat(leftRect);
+        middleCrop = input.submat(middleRect);
+        rightCrop = input.submat(rightRect);
 
-        leftCropBlue = input.submat(leftRect);
-        middleCropBlue = input.submat(middleRect);
-        rightCropBlue = input.submat(rightRect);
+        double leftMean   = Core.sumElems(leftCrop).val[0] / (leftCrop.rows() * leftCrop.cols());
+        double middleMean = Core.sumElems(middleCrop).val[0] / (middleCrop.rows() * middleCrop.cols());
+        double rightMean  = Core.sumElems(rightCrop).val[0] / (rightCrop.rows() * rightCrop.cols());
 
-        leftCropRed = input.submat(leftRect);
-        middleCropRed = input.submat(middleRect);
-        rightCropRed = input.submat(rightRect);
+        double maxHue = Math.max(Math.max(leftMean, middleMean), rightMean);
 
+        setPropPos(maxHue, leftMean, rightMean);
 
-        Core.extractChannel(leftCropBlue, leftCropRed, 0);
-        Core.extractChannel(middleCropBlue, middleCropRed, 0);
-        Core.extractChannel(rightCropBlue, rightCropRed, 0);
-
-        Core.extractChannel(leftCropBlue, leftCropBlue,2);
-        Core.extractChannel(middleCropBlue, middleCropBlue,2);
-        Core.extractChannel(rightCropBlue, rightCropBlue,2);
-
-//        final double red_high =   /*((double)80 / 360) * 255*/ .53 * 255, blue_high   =  0.07 * 255, val_low   = .58 * 255;
-//        final double red_low  =   /*((double) 208 / 360) * 255*/ .28 * 255, sat_high  = 0.75 * 255, val_high  = .89 * 255;
-//
-//        final Scalar lowRGB = new Scalar(red_low, sat_low, val_low);
-//        final Scalar highRGB = new Scalar(red_high, sat_high, val_high);
-//
-//        Core.inRange(input, lowRGB, highRGB, input);
-
-        leftMeanRed   = Core.sumElems(leftCropRed).val[0] / (leftCropRed.rows() * leftCropRed.cols());
-        middleMeanRed = Core.sumElems(middleCropRed).val[0] / (middleCropRed.rows() * middleCropRed.cols());
-        rightMeanRed  = Core.sumElems(rightCropRed).val[0] / (rightCropRed.rows() * rightCropRed.cols());
-
-        leftMeanBlue   = Core.sumElems(leftCropBlue).val[0] / (leftCropBlue.rows() * leftCropBlue.cols());
-        middleMeanBlue = Core.sumElems(middleCropBlue).val[0] / (middleCropBlue.rows() * middleCropBlue.cols());
-        rightMeanBlue  = Core.sumElems(rightCropBlue).val[0] / (rightCropBlue.rows() * rightCropBlue.cols());
-
-        double maxRedMean = Math.max(Math.max(leftMeanRed, middleMeanRed), rightMeanRed);
-        double maxBlueMean = Math.max(Math.max(leftMeanBlue, middleMeanBlue), rightMeanBlue);
-
-        if(maxRedMean > maxBlueMean){
-            setPropPos(maxRedMean, leftMeanRed, rightMeanRed);
-        } else {
-            setPropPos(maxBlueMean, leftMeanBlue, rightMeanBlue);
-        }
-
-        Imgproc.rectangle(input, leftRect, new Scalar(20, 20, 255), 7);
-        Imgproc.rectangle(input, rightRect, new Scalar(20, 20, 255), 7);
+        Imgproc.rectangle(input, leftRect, new Scalar(255, 255, 255), 10);
+        Imgproc.rectangle(input, rightRect, new Scalar(255, 255, 255), 10);
         return input;
     }
 
     //set prop position based off the color of the prop
-    private void setPropPos(double maxValue, double leftMean, double rightMean){
-        if(maxValue == leftMean)
+    private void setPropPos(double maxHue, double leftMean, double rightMean){
+        if(maxHue == leftMean)
             propPos = PropPosition.Left;
-        else if(maxValue == rightMean)
+        else if(maxHue == rightMean)
             propPos = PropPosition.Right;
         else
             propPos = PropPosition.Middle;
@@ -96,12 +78,4 @@ public class Pipeline extends OpenCvPipeline {
         return propPos;
     }
 
-    public String toString(){
-        return "\nleft mean red: " + leftMeanRed +
-                "\nmiddle mean red: " + middleMeanRed +
-                "\nright mean red: " + rightMeanRed +
-                "\n\nleft mean blue: " + leftMeanBlue +
-                "\nmiddle mean blue: " + middleMeanBlue +
-                "\nright mean blue" + rightMeanBlue;
-    }
 }
