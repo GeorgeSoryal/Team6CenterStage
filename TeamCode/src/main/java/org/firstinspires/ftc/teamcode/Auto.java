@@ -234,7 +234,7 @@ public class Auto extends LinearOpMode {
 
 
         hw.setMotorsToZero();
-
+        resetEncoders();
     }
 
     /**
