@@ -10,6 +10,7 @@ public class TeleOpMain extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         Hardware hw = new Hardware(this);
         hw.init(hardwareMap);
+        hw.gyro.resetYaw();
 
         double roundedClawPosition;
         int armTargetPosition = 0;
