@@ -487,7 +487,7 @@ public class Auto extends LinearOpMode {
                 moveArmUp();
                 clampOpenClaws();
                 moveArmDown();
-                strafe(turnDirection * -28, -DEFAULT_POWER);
+                strafe(turnDirection * 28, -DEFAULT_POWER);
             case left:
                 strafe(turnDirection * -46, DEFAULT_POWER);
         }
