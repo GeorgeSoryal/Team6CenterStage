@@ -32,16 +32,25 @@ public class Pipeline extends OpenCvPipeline {
         final double blue_hue_low =   ((double)218 / 360) * 179, sat_low   =  70, val_low   = 50;
         final double blue_hue_high  =   ((double) 232 / 360) * 179, sat_high  = 255, val_high  = 255;
         final double red_hue_low = ((double) 340 /360) *179, red_hue_high = ((double) 360 / 360 ) * 179;
+        final double red_hue_low2 = 0, red_hue_high_2 = 15;
+
 //
         final Scalar blueLowHSV = new Scalar(blue_hue_low, sat_low, val_low);
         final Scalar blueHighHSV = new Scalar(blue_hue_high, sat_high, val_high);
         final Scalar redLowHSV = new Scalar(red_hue_low, sat_low, val_low);
         final Scalar redHighHSV = new Scalar(red_hue_high, sat_high, val_high);
+        final Scalar redLowHSV2 = new Scalar(red_hue_low2, sat_low, val_low);
+        final Scalar redHighHSV2 = new Scalar(red_hue_high_2, sat_high, val_high);
 //
         if(isOnBlueSide)
             Core.inRange(input, blueLowHSV, blueHighHSV, input);
-        else
-            Core.inRange(input, redLowHSV, redHighHSV, input);
+        else {
+            Core.inRange(input, redLowHSV, redHighHSV, main);
+            Core.inRange(input, redLowHSV2, redHighHSV2, input);
+            Core.bitwise_xor(input, main, input);
+        }
+//            Core.inRange(input, redLowHSV, redHighHSV, input);
+//            Core.add(input, );
 
         Rect leftRect = new Rect(0,100,(640 / 3),260);
         Rect middleRect = new Rect((640 / 3), 100, (640 / 3), 260);

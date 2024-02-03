@@ -103,6 +103,8 @@ public class Auto extends LinearOpMode {
 
 //        moveArmUp();
 
+        hw.clawMove.setPosition(hw.SERVO_MIDDLE_TILTED_POSITION);
+        moveArm(hw.CLAW_ARM_UP_POSITION * 0.75, 0.7);
         while(opModeInInit()) {
             telemetry.addData("Prop position: ", pipeline.getPropPos());
             telemetry.update();
@@ -126,47 +128,34 @@ public class Auto extends LinearOpMode {
         while(opModeIsActive() && !hasRun) {
             hasRun = true;
 
-            switch (propPos){
-                case Left:
-                    drive(30, DEFAULT_POWER);
-                    strafe(5, DEFAULT_POWER);
-                    strafe(-5, -DEFAULT_POWER);
-                    break;
-
-                case Middle:
-                    defaultAutoBackToWall();
-                    break;
-
-                case Right:
-                    drive(30, DEFAULT_POWER);
-                    strafe(-5, -DEFAULT_POWER);
-                    strafe(5, DEFAULT_POWER);
-                    break;
-            }
 
 
-            switch (autoMode.first) {
-                case BlueLeft:
-                    autoLB(parking);
-                    break;
-
-                case BlueRight:
-                    autoRB(parking);
-                    break;
-
-                case RedLeft:
-                    autoLR(parking);
-                    break;
-
-                case RedRight:
-                    autoRR(parking);
-                    break;
-
-                default:
-
-
-                    break;
-                }
+            //            switch (autoMode.first) {
+//                case BlueLeft:
+//                    autoLB(parking);
+//                    break;
+//
+//                case BlueRight:
+//                    autoRB(parking);
+//                    break;
+//
+//                case RedLeft:
+//                    autoLR(parking);
+//                    break;
+//
+//                case RedRight:
+//                    autoRR(parking);
+//                    break;
+//
+//                default:
+//                        strafe(15, 0.4);
+//                        strafe(-15, -0.4);
+//
+//                        turnByEncoder(-90, -0.4);
+//
+//
+//                    break;
+//                }
         }
     }
 
@@ -315,11 +304,7 @@ public class Auto extends LinearOpMode {
         hw.backRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
-    public void accelerateArm(double power){
-        for(int i = 0; i < 10; i++) {
 
-        }
-    }
 
     /**
      * @return Pair: first = mode, second = parking
@@ -418,6 +403,24 @@ public class Auto extends LinearOpMode {
         hw.slideArm.setPower(DEFAULT_POWER);
     }
 
+    public void leftSpikePlace(boolean isClear){
+        if(isClear){
+            drive(27.5, 0.5);
+            strafe(15, 0.5);
+            drive(-20,-0.5);
+            moveArmDown();
+        }
+    }
+
+    public void rightSpikePlace(boolean isClear){
+        if(isClear){
+            drive(27.5, 0.5);
+            strafe(-15, -0.5);
+            drive(-20,-0.5);
+            moveArmDown();
+        }
+
+    }
 
 
     public void autoLB(ParkingDirection parking) {
@@ -458,9 +461,21 @@ public class Auto extends LinearOpMode {
     }
 
     public void autoLR(ParkingDirection parking) {
-        drive(-30, DEFAULT_POWER);
-        turnByEncoder(90, DEFAULT_POWER);
-        //drive(50, DEFAULT_POWER);
+
+        switch (propPos){
+            case Left:
+                leftSpikePlace(true);
+                break;
+
+            case Middle:
+                defaultAutoBackToWall();
+                break;
+
+            case Right:
+                rightSpikePlace(false);
+                break;
+        }
+
         switch (parking) {
             case right: /** test it **/
 //                drive(DISTANCE_TO_SPIKE_MARK, DEFAULT_POWER);
@@ -481,15 +496,23 @@ public class Auto extends LinearOpMode {
     }
 
     public void autoRR(ParkingDirection parking) {
-        drive(-20, DEFAULT_POWER);
-        strafe(-25, DEFAULT_POWER);
-        turnByEncoder(90, DEFAULT_POWER);
+
+        switch (propPos){
+            case Left:
+                leftSpikePlace(false);
+                break;
+
+            case Middle:
+                defaultAutoBackToWall();
+                break;
+
+            case Right:
+                rightSpikePlace(true);
+                break;
+        }
+
         switch (parking) {
             case right: // done parking
-//                telemetry.addData("right right right", "");
-//                telemetry.update();
-//                defaultAutoBackToWall();
-//                strafe(-46, -DEFAULT_POWER);
 
                 break;
             case left: //done parking

@@ -30,11 +30,11 @@ public class Hardware {
 //    static final double TICKS_PER_INCH = (TICKS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) / (WHEEL_DIAMETER_INCHES * 3.1415);
     public final int CLAW_ARM_UP_POSITION = 2290;
     public final int CLAW_ARM_DANGER_POSITION = 15;
-    public final int CLAW_ARM_DOWN_POSITION = 50;
     public DcMotor frontLeft = null;
     public DcMotor frontRight = null;
     public DcMotor backLeft = null;
     public DcMotor backRight = null;
+    public DcMotor droneLauncherArm = null;
     public DcMotor slideArm = null;
     public Servo clawLeft = null;
     public Servo clawRight = null;
@@ -142,6 +142,15 @@ public class Hardware {
         catch(Exception e){
             opMode.telemetry.addData("Gyro: ", "ERROR");
             opMode.telemetry.update();
+        } try {
+            droneLauncherArm = hardwareMap.get(DcMotor.class, "droneLauncher");
+            droneLauncherArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            droneLauncherArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            droneLauncherArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            droneLauncherArm.setPower(0);
+        } catch (Exception e) {
+            opMode.telemetry.addData("DroneLauncherArm ", "ERROR");
+            opMode.telemetry.update();
         }
 
         // Have to test this when the drive train is created
@@ -178,7 +187,9 @@ public class Hardware {
         opMode.telemetry.addData("\nslideArm position: ", slideArm.getCurrentPosition());
         opMode.telemetry.addData("slideArm target: ", slideArm.getTargetPosition());
 
-        opMode.telemetry.addData("\n Gyro angle: ", getGyroAngle()+180.0);
+        opMode.telemetry.addData("\n Gyro angle: ", getGyroAngle());
+        opMode.telemetry.addData("\n Drone launcher position ", droneLauncherArm.getCurrentPosition());
+        opMode.telemetry.addData("Drone launcher target ", droneLauncherArm.getTargetPosition());
 //        opMode.telemetry.update();
     }
 
@@ -189,7 +200,7 @@ public class Hardware {
     public boolean isNotAtTargetPosition(){
         double currentPos = frontLeft.getCurrentPosition();
         double targetPos = frontLeft.getTargetPosition();
-        return !(currentPos >= targetPos);
+        return Math.abs(currentPos - targetPos) > 5;
     }
 
     public void setAllTargets(int targetPosition){

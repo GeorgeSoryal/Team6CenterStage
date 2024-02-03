@@ -6,10 +6,6 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 
 @TeleOp(name="TeleOpFR")
 public class TeleOpMain extends LinearOpMode {
-    final double SLIDE_ARM_SLOW_SPEED = 0.15;
-    final double SLIDE_ARM_SPEED = 0.6;
-
-
     @Override
     public void runOpMode() throws InterruptedException {
         Hardware hw = new Hardware(this);
@@ -43,11 +39,13 @@ public class TeleOpMain extends LinearOpMode {
 
             double armPower = 0.8;
             if(gamepad2.right_bumper) {
-                if (armTargetPosition < hw.CLAW_ARM_UP_POSITION)
-                    armTargetPosition += 20;
+                if (armTargetPosition < hw.CLAW_ARM_UP_POSITION){
+                    armTargetPosition += 45;
+                    armPower = 0.88;
+                }
             } else if(gamepad2.left_bumper){
                 if(armTargetPosition > hw.CLAW_ARM_DANGER_POSITION){
-                    armTargetPosition -= 20;
+                    armTargetPosition -= 35;
                     armPower = 0.55;
                 }
             } else {
@@ -55,6 +53,12 @@ public class TeleOpMain extends LinearOpMode {
             }
             hw.slideArm.setTargetPosition(armTargetPosition);
             hw.slideArm.setPower(armPower);
+
+            if(gamepad2.x)
+                hw.droneLauncherArm.setTargetPosition(180);
+            if(gamepad2.y)
+                hw.droneLauncherArm.setTargetPosition(550);
+            if(gamepad2.left_bumper)
 
 //            hw.slideArm.setTargetPosition(armTargetPosition);
 
@@ -66,7 +70,7 @@ public class TeleOpMain extends LinearOpMode {
 //            else
 //                hw.slideArm.setPower(SLIDE_ARM_SPEED);
 
-            if(gamepad2.a){ // open/closes claw
+            if(gamepad2.a) { // open/closes claw
                 roundedClawPosition = Math.round((hw.clawRight.getPosition() * 1000)) / 1000.0;
                 telemetry.update();
                 if(roundedClawPosition == hw.SERVO_RIGHT_OPEN_POSITION && !isAPressed){
@@ -77,24 +81,9 @@ public class TeleOpMain extends LinearOpMode {
                     hw.clawRight.setPosition(hw.SERVO_RIGHT_OPEN_POSITION);
                 }
                 isAPressed = true;
-            }else{
+            } else{
                 isAPressed = false;
             }
-//            if(gamepad2.x) { // open/closes claw
-//                hw.slideArm.setPower(0.8);
-//                hw.slideArm.setTargetPosition(hw.CLAW_ARM_UP_POSITION);
-//            }
-
-//
-//            if(gamepad2.left_stick_y == 0){
-//                hw.slideArm.setPower(0);
-//            }else if(hw.slideArm.getCurrentPosition() < hw.CLAW_ARM_UP_POSITION){
-//                if(hw.slideArm.getCurrentPosition() < 50){
-//                    hw.slideArm.setPower(gamepad2.left_stick_y / 3.5);
-//                }
-//                hw.slideArm.setPower(gamepad2.left_stick_y / 2);
-//            }
-
 
             if (gamepad2.b){ // tilts claw
                 roundedClawPosition = Math.round((hw.clawMove.getPosition() * 1000)) / 1000.0;
