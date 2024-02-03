@@ -5,14 +5,11 @@ import android.util.Pair;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.sun.source.tree.WhileLoopTree;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
-
-import java.nio.channels.Pipe;
 
 
 /**
@@ -32,6 +29,7 @@ public class Auto extends LinearOpMode {
     // always absolute values since its distances and its less confusing for me even though DISTANCE_BACK_TO_WALL will
     // never be used as a positive
     final private double DISTANCE_TO_SPIKE_MARK = 27.5;
+    final double DISTANCE_BACK_TO_WALL = 25.5;
     OpenCvCamera camera = null;
     int cameraMonitorViewId = 0;
     WebcamName webcamName = null;
@@ -39,7 +37,7 @@ public class Auto extends LinearOpMode {
     PropPosition propPos;
 
 
-    // left or right in the parking area from the robots perspective 
+    // left or right in the parking area from the robots perspective
     private enum ParkingDirection {
         left,
         right,
@@ -76,7 +74,7 @@ public class Auto extends LinearOpMode {
         camera = OpenCvCameraFactory.getInstance().createWebcam(webcamName, cameraMonitorViewId);
 
         Pipeline pipeline = new Pipeline(autoMode.first == ParkingMode.BlueLeft ||
-                autoMode.first == ParkingMode.BlueRight);
+                autoMode.first == ParkingMode.BlueRight);  // default runs red
         camera.setPipeline(pipeline);
 
         camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
@@ -112,10 +110,6 @@ public class Auto extends LinearOpMode {
         // Return to down position
         moveArmDown();
 
-
-        drive(DISTANCE_TO_SPIKE_MARK, DEFAULT_POWER);
-
-
         //  Doesn't run if autoMode is default/ null, IDE doesn't recognize but the while loop is infinite
         //  for the course of when the program will be run so all of Auto
         ParkingDirection parking = autoMode.second;
@@ -125,30 +119,58 @@ public class Auto extends LinearOpMode {
             hasRun = true;
 
             switch (autoMode.first) {
+                // blueLeft and redLeft spike placing is identical
                 case BlueLeft:
-                    autoLB(parking);
+                    if(propPos == PropPosition.Left)
+                        farSpikePlace(true);
+                    else if (propPos == PropPosition.Right)
+                        nearSpikePlace(false);
+                    else if (propPos == PropPosition.Middle)
+                        defaultAutoBackToWall();
+                    nearParking(parking, true);
                     break;
 
                 case BlueRight:
-                    autoRB(parking);
+                    if(propPos == PropPosition.Left)
+                        nearSpikePlace(true);
+                    else if (propPos == PropPosition.Right)
+                        farSpikePlace(false);
+                    else if (propPos == PropPosition.Middle)
+                        defaultAutoBackToWall();
+                    farParking(parking, true);
                     break;
 
                 case RedLeft:
-                    autoLR(parking);
+                    if(propPos == PropPosition.Left)
+                        farSpikePlace(true);
+                    else if (propPos == PropPosition.Right)
+                        nearSpikePlace(false);
+                    else if (propPos == PropPosition.Middle)
+                        defaultAutoBackToWall();
+                    farParking(parking, false);
                     break;
 
                 case RedRight:
-                    autoRR(parking);
+                    if(propPos == PropPosition.Left)
+                        nearSpikePlace(true);
+                    else if (propPos == PropPosition.Right)
+                        farSpikePlace(false);
+                    else if (propPos == PropPosition.Middle)
+                        defaultAutoBackToWall();
+                    nearParking(parking, false);
                     break;
 
-                default:
-                    drive(10, 0.8);
-                    drive(-5, 0.8);
-                    strafe(15, 0.4);
-                    strafe(-15, -0.4);
-                    turnByEncoder(-90, -0.4);
-                    turnByEncoder(90, -0.4);
+                default:  // test values
+                    strafe(-25, DEFAULT_POWER);
+                    strafe(25, -DEFAULT_POWER);  // doesn't stop
+                    strafe(25, DEFAULT_POWER);
+                    strafe(-25, -DEFAULT_POWER);
+
+                    hw.telemetryHardware();
+                    telemetry.update();
+                    sleep(2000);
                     break;
+
             }
         }
     }
@@ -158,6 +180,7 @@ public class Auto extends LinearOpMode {
         resetEncoders();
         int targetPosition = (int) (inches * TICKS_PER_INCH);
 
+        hw.minPositionDelta = 4;
         hw.setAllTargets(targetPosition);
 
         hw.frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -193,33 +216,49 @@ public class Auto extends LinearOpMode {
         hw.backLeft.setPower(backLeftPower);
         hw.backRight.setPower(backRightPower);
 
-        while (hw.isNotAtTargetPosition() && opModeIsActive()) ;
+        while (hw.isNotAtTargetPosition() && opModeIsActive()){
+            hw.telemetryHardware();
+            telemetry.update();
+            sleep(2000);
+        }
 
         hw.setMotorsToZero();
         resetEncoders();
 
     }
 
-    // for distance: right is negative, left is positive
+    /**
+     * for distance: right is negative, left is positive
+     */
     public void strafe(double distance, double power) {
         resetEncoders();
         int targetPos = (int) (distance * TICKS_PER_INCH);
+        hw.minPositionDelta = 4;
+
         hw.frontLeft.setTargetPosition(targetPos);
         hw.frontRight.setTargetPosition(-targetPos);
         hw.backLeft.setTargetPosition(-targetPos);
         hw.backRight.setTargetPosition(targetPos);
 
+        hw.frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        hw.frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        hw.backLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        hw.backRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
         hw.frontLeft.setPower(power);
-        hw.frontRight.setPower(-power);
-        hw.backLeft.setPower(-power);
+        hw.frontRight.setPower(power);
+        hw.backLeft.setPower(power);
         hw.backRight.setPower(power);
 
         while (hw.isNotAtTargetPosition() && opModeIsActive()) ;
 
         hw.setMotorsToZero();
+        resetEncoders();
     }
 
-    //positive power -> turn right, negative power -> turn left
+    /**
+     * positive angle -> turn left, negative angle -> turn right
+     */
     public void turnByEncoder(double angle, double power) {
         resetEncoders();
         angle = (angle / 360) * (8 * TICKS_PER_MOTOR_REV); //8 motor revs = 360 degree turn
@@ -230,6 +269,7 @@ public class Auto extends LinearOpMode {
         hw.backLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         hw.backRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
+        hw.minPositionDelta = 4;
         hw.frontLeft.setTargetPosition(targetPosition);
         hw.frontRight.setTargetPosition(-targetPosition);
         hw.backLeft.setTargetPosition(targetPosition);
@@ -271,7 +311,7 @@ public class Auto extends LinearOpMode {
             headingError = angle - hw.getGyroAngle();
             headingError = headingError < 0 ? -headingError : headingError;
             telemetry.addData("Heading Error: ", headingError);
-            
+
             // turnDirection instead of -1
             double rightWheelsPower = -turnDirection * (headingError);
             double leftWheelsPower = turnDirection * (headingError);
@@ -382,7 +422,7 @@ public class Auto extends LinearOpMode {
     }
 
     public void defaultAutoBackToWall() {
-        final double DISTANCE_BACK_TO_WALL = 25.5;
+        drive(DISTANCE_TO_SPIKE_MARK, DEFAULT_POWER);
         drive(-DISTANCE_BACK_TO_WALL, -DEFAULT_POWER);
     }
 
@@ -401,138 +441,71 @@ public class Auto extends LinearOpMode {
 
     public void moveArmUp(){
         hw.slideArm.setTargetPosition(hw.CLAW_ARM_UP_POSITION);
-        hw.slideArm.setPower(-DEFAULT_POWER);
-        while (hw.slideArm.getCurrentPosition() > hw.CLAW_ARM_DANGER_POSITION);
-        hw.slideArm.setPower(0);
+        hw.slideArm.setPower(DEFAULT_POWER);
     }
     public void moveArmDown(){
         hw.slideArm.setTargetPosition(0);
         hw.slideArm.setPower(DEFAULT_POWER);
-        while (hw.slideArm.getCurrentPosition() < 0);
-        hw.slideArm.setPower(DEFAULT_POWER);
     }
 
-    public void leftSpikePlace(boolean isClear){
-        if(isClear){
-            drive(27.5, 0.5);
-            strafe(15, 0.5);
-            drive(-20,-0.5);
-            moveArmDown();
-        }
+    /**
+     * Used on left blue, left red, right red:
+     */
+    public void farSpikePlace(boolean isOnLeftSpikeMark){
+        int turnDirection = isOnLeftSpikeMark ? 1 : -1;
+        drive(DISTANCE_TO_SPIKE_MARK - 5, DEFAULT_POWER);
+        strafe(turnDirection * 15, DEFAULT_POWER);
+        drive(-DISTANCE_BACK_TO_WALL + 5, DEFAULT_POWER);
+        strafe(turnDirection * -15, DEFAULT_POWER);
+        moveArmDown();
     }
 
-    public void rightSpikePlace(boolean isClear){
-        if(isClear){
-            drive(27.5, 0.5);
-            strafe(-15, -0.5);
-            drive(-20,-0.5);
-            moveArmDown();
-        }
-
+    /**
+     * used on right blue, right red
+     */
+    public void nearSpikePlace(boolean isOnLeftSpikeMark){
+        int turnDirection = isOnLeftSpikeMark ? 1 : -1;
+        drive(DISTANCE_TO_SPIKE_MARK - 5, DEFAULT_POWER);
+        turnByEncoder(turnDirection * 90, DEFAULT_POWER);
+        // Pushes spike pixel
+        drive(10, DEFAULT_POWER);  // TODO: TWEAK value 10
+        drive(-10, DEFAULT_POWER);
+        turnByEncoder(turnDirection * -90, DEFAULT_POWER);
+        drive(-DISTANCE_BACK_TO_WALL + 5,DEFAULT_POWER);
+        moveArmDown();
     }
 
 
-    public void autoLB(ParkingDirection parking) {
+    public void nearParking(ParkingDirection parking, boolean isBlue) {
+        int turnDirection = isBlue ? 1 : -1;
         switch (parking) {
-            case right: //done parking
-                // forward then strafe
-                drive(45 - DISTANCE_TO_SPIKE_MARK, DEFAULT_POWER);
-                drive(-7, -DEFAULT_POWER);
-//                moveArm(0, DEFAULT_POWER);
-                strafe(-18, -DEFAULT_POWER);
+            case right:
+                strafe(turnDirection * -18, DEFAULT_POWER);
                 drive(28, DEFAULT_POWER);
-                strafe(-28, -DEFAULT_POWER);
-            case left: // done parking
-                // back to wall then strafe
-                defaultAutoBackToWall();
-                strafe(-46, -DEFAULT_POWER);
+                turnByEncoder(turnDirection * -90, DEFAULT_POWER);
+                drive(26, DEFAULT_POWER);
+                moveArmUp();
+                clampOpenClaws();
+                moveArmDown();
+                strafe(turnDirection * -28, -DEFAULT_POWER);
+            case left:
+                strafe(turnDirection * -46, DEFAULT_POWER);
         }
     }
 
-    public void autoRB(ParkingDirection parking) {
+    public void farParking(ParkingDirection parking, boolean isBlue) {
+        int turnDirection = isBlue ? 1 : -1;
         switch (parking) {
             case right: // done parking
-                drive(DISTANCE_TO_SPIKE_MARK, DEFAULT_POWER);
-                drive(-7, -DEFAULT_POWER);
-                strafe(18, DEFAULT_POWER);
+                strafe(turnDirection * -18, DEFAULT_POWER);
                 drive(35.5, DEFAULT_POWER);
-                strafe(-130, -DEFAULT_POWER);
+                strafe(turnDirection * 130, -DEFAULT_POWER);
                 drive(-12, -DEFAULT_POWER);
                 break;
             case left: //done parking
-                drive(DISTANCE_TO_SPIKE_MARK, DEFAULT_POWER);
-                drive(-25, -DEFAULT_POWER);
-//                moveArm(0, DEFAULT_POWER);
-                turnByEncoder(90, DEFAULT_POWER);
+                turnByEncoder(turnDirection * 90, DEFAULT_POWER);
                 drive(80, DEFAULT_POWER);
                 break;
-        }
-    }
-
-    public void autoLR(ParkingDirection parking) {
-
-        switch (propPos){
-            case Left:
-                leftSpikePlace(true);
-                break;
-
-            case Middle:
-                defaultAutoBackToWall();
-                break;
-
-            case Right:
-                rightSpikePlace(false);
-                break;
-        }
-
-        switch (parking) {
-            case right: /** test it **/
-//                drive(DISTANCE_TO_SPIKE_MARK, DEFAULT_POWER);
-//                drive(-25, -DEFAULT_POWER);
-////                moveArm(0, DEFAULT_POWER);
-//                turnByGyro(90, DEFAULT_POWER);
-//                drive(-80, -DEFAULT_POWER);
-                break;
-            case left: // done pakeinf
-//                drive(DISTANCE_TO_SPIKE_MARK, DEFAULT_POWER);
-//                drive(-7, -DEFAULT_POWER);
-//                strafe(18, DEFAULT_POWER);
-//                drive(35.5, DEFAULT_POWER);
-//                strafe(-130, -DEFAULT_POWER);
-//                drive(-12, -DEFAULT_POWER);
-                break;
-        }
-    }
-
-    public void autoRR(ParkingDirection parking) {
-
-        switch (propPos){
-            case Left:
-                leftSpikePlace(false);
-                break;
-
-            case Middle:
-                defaultAutoBackToWall();
-                break;
-
-            case Right:
-                rightSpikePlace(true);
-                break;
-        }
-
-        switch (parking) {
-            case right: // done parking
-
-                break;
-            case left: //done parking
-//                drive(DISTANCE_TO_SPIKE_MARK, DEFAULT_POWER);
-//                drive(-7, -DEFAULT_POWER);
-//                strafe(-18, DEFAULT_POWER);
-//                drive(29, DEFAULT_POWER);
-//                strafe(-30, -DEFAULT_POWER);
-
-                break;
-
         }
     }
 }

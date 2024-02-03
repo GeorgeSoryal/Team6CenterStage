@@ -24,10 +24,7 @@ import org.openftc.easyopencv.OpenCvInternalCamera;
  * right servo poprt: 4
  */
 public class Hardware {
-    static final double TICKS_PER_MOTOR_REV = ((((1+((double)46/17))) * (1+((double)46/11))) * 28);
-    static final double DRIVE_GEAR_REDUCTION = 1.0;
-    static final double WHEEL_DIAMETER_INCHES = 3.78;
-//    static final double TICKS_PER_INCH = (TICKS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) / (WHEEL_DIAMETER_INCHES * 3.1415);
+    public int minPositionDelta = 4;
     public final int CLAW_ARM_UP_POSITION = 2290;
     public final int CLAW_ARM_DANGER_POSITION = 15;
     public DcMotor frontLeft = null;
@@ -208,7 +205,7 @@ public class Hardware {
     public boolean isNotAtTargetPosition(){
         double currentPos = frontLeft.getCurrentPosition();
         double targetPos = frontLeft.getTargetPosition();
-        return Math.abs(currentPos - targetPos) > 4;
+        return Math.abs(currentPos - targetPos) > minPositionDelta;
     }
 
     public void setAllTargets(int targetPosition){
