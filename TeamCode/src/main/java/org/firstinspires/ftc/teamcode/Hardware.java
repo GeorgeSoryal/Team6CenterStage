@@ -148,8 +148,8 @@ public class Hardware {
             droneLauncherArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             droneLauncherArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             droneLauncherArm.setTargetPosition(0);
-            droneLauncherArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             droneLauncherArm.setPower(0);
+            droneLauncherArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         } catch (Exception e) {
             opMode.telemetry.addData("DroneLauncherArm ", "ERROR");
             opMode.telemetry.update();
@@ -208,7 +208,7 @@ public class Hardware {
     public boolean isNotAtTargetPosition(){
         double currentPos = frontLeft.getCurrentPosition();
         double targetPos = frontLeft.getTargetPosition();
-        return Math.abs(currentPos - targetPos) > 13;
+        return Math.abs(currentPos - targetPos) > 4;
     }
 
     public void setAllTargets(int targetPosition){

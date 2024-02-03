@@ -58,18 +58,15 @@ public class Auto extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         hw.init(hardwareMap);
-        //hw.setMotorsToZero();
-        //hw.gyro.resetYaw();
-        /**
-         * TODO: UNCOMMENT CODE AFTER AMR IS FIXED
-         */
-//        clampDownClaws();
-//
-//        // ARM init double checking, especially for auto
-//        hw.slideArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-//        hw.slideArm.setTargetPosition(0);
-//        hw.slideArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        // resetEncoders();
+        hw.setMotorsToZero();
+        hw.gyro.resetYaw();
+        clampDownClaws();
+
+        // ARM init double checking, especially for auto
+        hw.slideArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        hw.slideArm.setTargetPosition(0);
+        hw.slideArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+         resetEncoders();
 
         Pair<ParkingMode, ParkingDirection> autoMode;
         autoMode = getAutoMode();   // Can throw InterruptedException
@@ -97,13 +94,10 @@ public class Auto extends LinearOpMode {
         });
 
 
-        /**
-         * TODO: UNCOMMENT CODE WHEN ARM IS FIXED
-         */
-//        hw.slideArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-//        hw.slideArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        hw.slideArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        hw.slideArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-//        moveArmUp();
+        moveArmUp();
 
         hw.clawMove.setPosition(hw.SERVO_MIDDLE_TILTED_POSITION);
         moveArm(hw.CLAW_ARM_UP_POSITION * 0.75, 0.7);
@@ -116,10 +110,10 @@ public class Auto extends LinearOpMode {
         waitForStart();
 
         // Return to down position
-//        moveArmDown();
+        moveArmDown();
 
 
-        //drive(DISTANCE_TO_SPIKE_MARK, DEFAULT_POWER);
+        drive(DISTANCE_TO_SPIKE_MARK, DEFAULT_POWER);
 
 
         //  Doesn't run if autoMode is default/ null, IDE doesn't recognize but the while loop is infinite
@@ -163,16 +157,23 @@ public class Auto extends LinearOpMode {
     public void drive(double inches, double power) {
         resetEncoders();
         int targetPosition = (int) (inches * TICKS_PER_INCH);
+
         hw.setAllTargets(targetPosition);
+
+        hw.frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        hw.frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        hw.backLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        hw.backRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
         hw.frontLeft.setPower(power);
         hw.frontRight.setPower(power);
         hw.backLeft.setPower(power);
         hw.backRight.setPower(power);
-        while (hw.isNotAtTargetPosition() && opModeIsActive());
+
+        while (hw.isNotAtTargetPosition() && opModeIsActive()) ;
 
         hw.setMotorsToZero();
-
+        resetEncoders();
     }
 
 
@@ -182,14 +183,20 @@ public class Auto extends LinearOpMode {
 
         hw.setAllTargets(targetPosition);
 
+        hw.frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        hw.frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        hw.backLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        hw.backRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
         hw.frontLeft.setPower(frontLeftPower);
         hw.frontRight.setPower(frontRightPower);
         hw.backLeft.setPower(backLeftPower);
         hw.backRight.setPower(backRightPower);
+
         while (hw.isNotAtTargetPosition() && opModeIsActive()) ;
 
         hw.setMotorsToZero();
-
+        resetEncoders();
 
     }
 
@@ -210,7 +217,6 @@ public class Auto extends LinearOpMode {
         while (hw.isNotAtTargetPosition() && opModeIsActive()) ;
 
         hw.setMotorsToZero();
-
     }
 
     //positive power -> turn right, negative power -> turn left
@@ -218,6 +224,11 @@ public class Auto extends LinearOpMode {
         resetEncoders();
         angle = (angle / 360) * (8 * TICKS_PER_MOTOR_REV); //8 motor revs = 360 degree turn
         int targetPosition = (int) angle;
+
+        hw.frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        hw.frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        hw.backLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        hw.backRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
         hw.frontLeft.setTargetPosition(targetPosition);
         hw.frontRight.setTargetPosition(-targetPosition);
@@ -229,9 +240,7 @@ public class Auto extends LinearOpMode {
         hw.backLeft.setPower(power);
         hw.backRight.setPower(-power);
 
-
         while (hw.isNotAtTargetPosition() && opModeIsActive()) ;
-
 
         hw.setMotorsToZero();
         resetEncoders();
@@ -290,7 +299,7 @@ public class Auto extends LinearOpMode {
     }
 
     /**
-     * Drivetrain motors Stop and reset and then sets the motors to run to position at the end.
+     * Drivetrain motors Stop and reset and then sets the motors to using encoders at the end.
      */
     public void resetEncoders() {
         hw.frontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -454,7 +463,7 @@ public class Auto extends LinearOpMode {
                 drive(DISTANCE_TO_SPIKE_MARK, DEFAULT_POWER);
                 drive(-25, -DEFAULT_POWER);
 //                moveArm(0, DEFAULT_POWER);
-                turnByGyro(90, DEFAULT_POWER);
+                turnByEncoder(90, DEFAULT_POWER);
                 drive(80, DEFAULT_POWER);
                 break;
         }
