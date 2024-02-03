@@ -69,7 +69,7 @@ public class Auto extends LinearOpMode {
 //        hw.slideArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 //        hw.slideArm.setTargetPosition(0);
 //        hw.slideArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-       // resetEncoders();
+        // resetEncoders();
 
         Pair<ParkingMode, ParkingDirection> autoMode;
         autoMode = getAutoMode();   // Can throw InterruptedException
@@ -79,19 +79,21 @@ public class Auto extends LinearOpMode {
         camera = OpenCvCameraFactory.getInstance().createWebcam(webcamName, cameraMonitorViewId);
 
         Pipeline pipeline = new Pipeline(autoMode.first == ParkingMode.BlueLeft ||
-                                        autoMode.first == ParkingMode.BlueRight);
+                autoMode.first == ParkingMode.BlueRight);
         camera.setPipeline(pipeline);
 
-        camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
-        {
+        camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
             @Override
-            public void onOpened()
-            {
-                camera.startStreaming(640,360, OpenCvCameraRotation.UPRIGHT);
+            public void onOpened() {
+                camera.startStreaming(640, 360, OpenCvCameraRotation.UPRIGHT);
 
             }
+
             @Override
-            public void onError(int errorCode){};
+            public void onError(int errorCode) {
+            }
+
+            ;
         });
 
 
@@ -105,7 +107,7 @@ public class Auto extends LinearOpMode {
 
         hw.clawMove.setPosition(hw.SERVO_MIDDLE_TILTED_POSITION);
         moveArm(hw.CLAW_ARM_UP_POSITION * 0.75, 0.7);
-        while(opModeInInit()) {
+        while (opModeInInit()) {
             telemetry.addData("Prop position: ", pipeline.getPropPos());
             telemetry.update();
         }
@@ -125,37 +127,35 @@ public class Auto extends LinearOpMode {
         ParkingDirection parking = autoMode.second;
         boolean hasRun = false;
 
-        while(opModeIsActive() && !hasRun) {
+        while (opModeIsActive() && !hasRun) {
             hasRun = true;
 
+            switch (autoMode.first) {
+                case BlueLeft:
+                    autoLB(parking);
+                    break;
 
+                case BlueRight:
+                    autoRB(parking);
+                    break;
 
-            //            switch (autoMode.first) {
-//                case BlueLeft:
-//                    autoLB(parking);
-//                    break;
-//
-//                case BlueRight:
-//                    autoRB(parking);
-//                    break;
-//
-//                case RedLeft:
-//                    autoLR(parking);
-//                    break;
-//
-//                case RedRight:
-//                    autoRR(parking);
-//                    break;
-//
-//                default:
-//                        strafe(15, 0.4);
-//                        strafe(-15, -0.4);
-//
-//                        turnByEncoder(-90, -0.4);
-//
-//
-//                    break;
-//                }
+                case RedLeft:
+                    autoLR(parking);
+                    break;
+
+                case RedRight:
+                    autoRR(parking);
+                    break;
+
+                default:
+                    drive(10, 0.8);
+                    drive(-5, 0.8);
+                    strafe(15, 0.4);
+                    strafe(-15, -0.4);
+                    turnByEncoder(-90, -0.4);
+                    turnByEncoder(90, -0.4);
+                    break;
+            }
         }
     }
 

@@ -14,6 +14,9 @@ public class TeleOpMain extends LinearOpMode {
 
         double roundedClawPosition;
         int armTargetPosition = 0;
+        int droneArmTarget = 0;
+        double droneArmPower = 0.8;
+        double armPower = 0.8;
 
         boolean isAPressed = false;
         boolean isBPressed = false;
@@ -24,8 +27,9 @@ public class TeleOpMain extends LinearOpMode {
         waitForStart();
 
         hw.setMotorsToZero();
+        hw.droneLauncherArm.setTargetPosition(1);
         while (opModeIsActive()) {
-//            armTargetPosition = (int) (hw.slideArm.getCurrentPosition() - (gamepad2.left_stick_y * (hw.CLAW_ARM_UP_POSITION - hw.CLAW_ARM_DOWN_POSITION)));
+            hw.droneLauncherArm.setPower(droneArmPower);
 
             double drive = -gamepad1.left_stick_y;
             double turn = gamepad1.right_stick_x;
@@ -38,14 +42,13 @@ public class TeleOpMain extends LinearOpMode {
             hw.backRight.setPower(((drive + turn - strafe) / maxPower));
             hw.backLeft.setPower(((drive - turn + strafe) / maxPower));
 
-            double armPower = 0.8;
-            if(gamepad2.right_bumper) {
-                if (armTargetPosition < hw.CLAW_ARM_UP_POSITION){
+            if (gamepad2.right_bumper) {
+                if (armTargetPosition < hw.CLAW_ARM_UP_POSITION) {
                     armTargetPosition += 45;
                     armPower = 0.88;
                 }
-            } else if(gamepad2.left_bumper){
-                if(armTargetPosition > hw.CLAW_ARM_DANGER_POSITION){
+            } else if (gamepad2.left_bumper) {
+                if (armTargetPosition > hw.CLAW_ARM_DANGER_POSITION) {
                     armTargetPosition -= 35;
                     armPower = 0.55;
                 }
@@ -55,21 +58,22 @@ public class TeleOpMain extends LinearOpMode {
             hw.slideArm.setTargetPosition(armTargetPosition);
             hw.slideArm.setPower(armPower);
 
-            if(gamepad2.x)
+            if (gamepad2.x)
                 hw.droneLauncherArm.setTargetPosition(180);
-            if(gamepad2.y)
+            if (gamepad2.y)
                 hw.droneLauncherArm.setTargetPosition(550);
-            if(gamepad2.left_bumper)
+            if (gamepad1.x)
+                hw.droneLauncherRelease.setPosition(-420);
 
-//            hw.slideArm.setTargetPosition(armTargetPosition);
+            if (gamepad1.right_bumper && droneArmTarget < 500) {
+                droneArmTarget += 20;
+            } else if (gamepad1.left_bumper && droneArmTarget > 20){
+                droneArmTarget -= 20;
+            } else {
+                droneArmTarget = hw.droneLauncherArm.getCurrentPosition();
+            }
 
-//            if(armTargetPosition < hw.CLAW_ARM_DANGER_POSITION)
-//                hw.slideArm.setPower(0);
-//            else if(armTargetPosition < hw.CLAW_ARM_DOWN_POSITION)
-//                hw.slideArm.setPower(SLIDE_ARM_SLOW_SPEED);
-//            hw.slideArm.setPower(/*hw.slideArm.getCurrentPosition() > armTargetPosition ? -0.8 :*/ 0.8); //
-//            else
-//                hw.slideArm.setPower(SLIDE_ARM_SPEED);
+            hw.droneLauncherArm.setTargetPosition(droneArmTarget);
 
             if(gamepad2.a) { // open/closes claw
                 roundedClawPosition = Math.round((hw.clawRight.getPosition() * 1000)) / 1000.0;
@@ -98,11 +102,6 @@ public class TeleOpMain extends LinearOpMode {
             } else {
                 isBPressed = false;
             }
-
-//            if(gamepad1.right_bumper){  // emergency button
-//                hw.slideArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-//                hw.slideArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-//            }
 
             hw.telemetryHardware();
 

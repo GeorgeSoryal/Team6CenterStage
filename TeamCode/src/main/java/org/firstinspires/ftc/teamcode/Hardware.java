@@ -35,6 +35,7 @@ public class Hardware {
     public DcMotor backLeft = null;
     public DcMotor backRight = null;
     public DcMotor droneLauncherArm = null;
+    public Servo droneLauncherRelease = null;
     public DcMotor slideArm = null;
     public Servo clawLeft = null;
     public Servo clawRight = null;
@@ -146,10 +147,16 @@ public class Hardware {
             droneLauncherArm = hardwareMap.get(DcMotor.class, "droneLauncher");
             droneLauncherArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             droneLauncherArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            droneLauncherArm.setTargetPosition(0);
             droneLauncherArm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             droneLauncherArm.setPower(0);
         } catch (Exception e) {
             opMode.telemetry.addData("DroneLauncherArm ", "ERROR");
+            opMode.telemetry.update();
+        } try {
+            droneLauncherRelease = hardwareMap.get(Servo.class, "launcherServo");
+        } catch (Exception e) {
+            opMode.telemetry.addData("Release ", "ERROR");
             opMode.telemetry.update();
         }
 
@@ -190,6 +197,7 @@ public class Hardware {
         opMode.telemetry.addData("\n Gyro angle: ", getGyroAngle());
         opMode.telemetry.addData("\n Drone launcher position ", droneLauncherArm.getCurrentPosition());
         opMode.telemetry.addData("Drone launcher target ", droneLauncherArm.getTargetPosition());
+        opMode.telemetry.addData("\n Drone launcher release target ", droneLauncherRelease.getPosition());
 //        opMode.telemetry.update();
     }
 
@@ -200,7 +208,7 @@ public class Hardware {
     public boolean isNotAtTargetPosition(){
         double currentPos = frontLeft.getCurrentPosition();
         double targetPos = frontLeft.getTargetPosition();
-        return Math.abs(currentPos - targetPos) > 5;
+        return Math.abs(currentPos - targetPos) > 13;
     }
 
     public void setAllTargets(int targetPosition){
@@ -208,7 +216,7 @@ public class Hardware {
         frontRight.setTargetPosition(targetPosition);
         backLeft.setTargetPosition(targetPosition);
         backRight.setTargetPosition(targetPosition);
-        slideArm.setTargetPosition(targetPosition);
+//        slideArm.setTargetPosition(targetPosition);
     }
 
 }
